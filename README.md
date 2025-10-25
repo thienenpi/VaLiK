@@ -101,10 +101,12 @@ On [ScienceQA](https://github.com/lupantech/ScienceQA), the text-only LLMs Qwen2
 ## Citation
 If you find this repository useful, please consider giving a star ⭐ and citation.
 ```
-@article{Liu_2025_VaLiK,
-  title={Aligning Vision to Language: Annotation-Free Multimodal Knowledge Graph Construction for Enhanced LLMs Reasoning},
-  author={Liu, Junming and Meng, Siyuan and Gao, Yanting and Mao, Song and Cai, Pinlong and Yan, Guohang and Chen, Yirong and Bian, Zilin and Wang, Ding and Shi, Botian},
-  journal={arXiv preprint arXiv:2503.12972},
-  year={2025}
+@InProceedings{Liu_2025_VaLiK,
+    author    = {Liu, Junming and Meng, Siyuan and Gao, Yanting and Mao, Song and Cai, Pinlong and Yan, Guohang and Chen, Yirong and Bian, Zilin and Wang, Ding and Shi, Botian},
+    title     = {Aligning Vision to Language: Annotation-Free Multimodal Knowledge Graph Construction for Enhanced LLMs Reasoning},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2025},
+    pages     = {981-992}
 }
 ```
