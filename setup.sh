@@ -26,7 +26,7 @@ python -m pip install --upgrade "vllm>=0.6.3"
 python -m pip install \
     "transformers>=4.49" accelerate qwen-vl-utils einops \
     nltk pillow opencv-python \
-    nano-vectordb networkx graspologic tiktoken tenacity xxhash \
+    nano-vectordb networkx graspologic "scipy>=1.13" tiktoken tenacity xxhash \
     openai aiohttp aiofiles pydantic python-dotenv tqdm numpy
 
 python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
