@@ -18,12 +18,12 @@ echo "=== HF_HOME: $HF_HOME"
 
 # vLLM first and alone: it pins its own torch build, and installing it after the
 # other requirements would silently swap torch out from under them.
-pip install --upgrade "vllm>=0.6.3"
+python -m pip install --upgrade "vllm>=0.6.3"
 
 # The rest, minus the upstream requirements.txt entries this reproduction does not
 # use. clip-interrogator==0.6.0 in particular pins an old open_clip and drags in a
 # conflicting torch; the minimal pipeline reaches CLIP through transformers instead.
-pip install \
+python -m pip install \
     "transformers>=4.49" accelerate qwen-vl-utils einops \
     nltk pillow opencv-python \
     nano-vectordb networkx graspologic tiktoken tenacity xxhash \
