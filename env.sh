@@ -10,17 +10,25 @@
 #   TMPDIR           LightRAG and vLLM both spill large temporaries here
 
 export DATA_ROOT="${DATA_ROOT:-/media/lhbac29}"
-export VALIK_ROOT="${SLURM_SUBMIT_DIR:-$DATA_ROOT/VaLiK}"
+# Every caller cds to the repo root before sourcing this, so $PWD is the right
+# fallback outside SLURM - and it keeps working if the repo is ever moved.
+export VALIK_ROOT="${SLURM_SUBMIT_DIR:-$PWD}"
 
 export HF_HOME="$DATA_ROOT/hf"
 export VLLM_CACHE_ROOT="$DATA_ROOT/vllm"
 export TRITON_CACHE_DIR="$DATA_ROOT/triton"
 export TMPDIR="$DATA_ROOT/tmp"
+if [ ! -d "$DATA_ROOT" ]; then
+    echo "ERROR: DATA_ROOT=$DATA_ROOT does not exist." >&2
+    echo "       On the cluster this is /media/lhbac29. Elsewhere, override it:" >&2
+    echo "         DATA_ROOT=/some/scratch bash setup.sh" >&2
+    return 1 2>/dev/null || exit 1
+fi
 mkdir -p "$HF_HOME" "$VLLM_CACHE_ROOT" "$TRITON_CACHE_DIR" "$TMPDIR" "$VALIK_ROOT/logs"
 
 # LightRAG is vendored, not pip-installed: src/LightRAG/lightrag is imported directly
 # so the pinned reference version the authors shipped stays in control.
-export PYTHONPATH="$VALIK_ROOT/src/LightRAG:$PYTHONPATH"
+export PYTHONPATH="$VALIK_ROOT/src/LightRAG${PYTHONPATH:+:$PYTHONPATH}"
 export TOKENIZERS_PARALLELISM=false
 
 # Models. Qwen2.5-32B-Instruct-AWQ is ~19 GB, so one 80 GB card holds it with room
@@ -39,14 +47,15 @@ export TAU="${TAU:-0.20}"
 # it, and make sure it dies with the job. Sets $BASE_URL.
 start_vllm() {
     local model="$1"; shift
-    local port=$((20000 + (SLURM_JOB_ID % 20000) + ${SLURM_ARRAY_TASK_ID:-0} * 13))
+    local jobid="${SLURM_JOB_ID:-$$}"
+    local port=$((20000 + (jobid % 20000) + ${SLURM_ARRAY_TASK_ID:-0} * 13))
     export BASE_URL="http://127.0.0.1:${port}/v1"
 
     echo "=== starting vLLM: $model on port $port"
     vllm serve "$model" --port "$port" --host 127.0.0.1 \
         --gpu-memory-utilization 0.85 --max-model-len 32768 \
         --disable-log-requests "$@" \
-        > "$VALIK_ROOT/logs/vllm-${SLURM_JOB_ID}-${SLURM_ARRAY_TASK_ID:-0}.log" 2>&1 &
+        > "$VALIK_ROOT/logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log" 2>&1 &
     VLLM_PID=$!
     trap 'kill $VLLM_PID 2>/dev/null' EXIT
 
@@ -56,7 +65,7 @@ start_vllm() {
             return 0
         fi
         kill -0 $VLLM_PID 2>/dev/null || {
-            echo "ERROR: vLLM died during startup; see logs/vllm-${SLURM_JOB_ID}-*.log" >&2
+            echo "ERROR: vLLM died during startup; see logs/vllm-${jobid}-*.log" >&2
             return 1
         }
         sleep 10
