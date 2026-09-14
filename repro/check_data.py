@@ -17,6 +17,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (  # noqa: E402
     IMAGES_DIR,
+    SQA_DATA,
     SQA_ROOT,
     VALIK_ROOT,
     find_image,
@@ -46,12 +47,15 @@ def main():
         return 1
 
     print("--- json files ---")
-    for name in ("problems.json", "pid_splits.json", "captions.json"):
-        fp = os.path.join(SQA_ROOT, name)
+    # captions.json sits in data/, the other two in data/scienceqa/.
+    for name, root in (("problems.json", SQA_ROOT),
+                       ("pid_splits.json", SQA_ROOT),
+                       ("captions.json", SQA_DATA)):
+        fp = os.path.join(root, name)
         if os.path.exists(fp):
-            print(f"  {name:18} OK       {os.path.getsize(fp) / 1e6:.1f} MB")
+            print(f"  {name:18} OK       {os.path.getsize(fp) / 1e6:.1f} MB   {fp}")
         else:
-            print(f"  {name:18} MISSING")
+            print(f"  {name:18} MISSING  (looked in {root})")
     print()
 
     problems, pid_splits = load_problems(), load_splits()

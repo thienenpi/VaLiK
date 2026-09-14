@@ -40,28 +40,31 @@ python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 # ---------------------------------------------------------------------- dataset
 mkdir -p datasets
 cd datasets
-if [ ! -d ScienceQA ]; then
-    git clone https://github.com/lupantech/ScienceQA
-    (cd ScienceQA && bash tools/download.sh)
-else
-    echo "=== ScienceQA already present"
-fi
+[ -d ScienceQA ] || git clone https://github.com/lupantech/ScienceQA
+
+# Images, NOT via ScienceQA's tools/download.sh. That script does
+#   cd data/scienceqa/images   (no mkdir -p)
+# and runs without set -e, so on a fresh clone the cd fails, wget drops the zips in
+# the wrong directory, unzip fails, and the trailing `rm *.zip` deletes them - all
+# while exiting 0. You end up with problems.json (which came from the git clone) and
+# no images at all. The archives are plain public S3 objects, so fetch them directly.
+IMG_DIR="ScienceQA/data/scienceqa/images"
+mkdir -p "$IMG_DIR"
+for split in train val test; do
+    if [ -d "$IMG_DIR/$split" ]; then
+        echo "=== images/$split already extracted ($(find "$IMG_DIR/$split" -mindepth 1 -maxdepth 1 -type d | wc -l) dirs)"
+        continue
+    fi
+    echo "=== downloading images/$split.zip"
+    wget -q --show-progress -O "$IMG_DIR/$split.zip" \
+        "https://scienceqa.s3.us-west-1.amazonaws.com/images/$split.zip"
+    unzip -q "$IMG_DIR/$split.zip" -d "$IMG_DIR"
+    rm -f "$IMG_DIR/$split.zip"
+done
 cd ..
 
-python - <<'PY'
-import os, sys
-sys.path.insert(0, "repro")
-from common import SQA_ROOT, load_problems, load_splits, load_sqa_captions
-print("SQA_ROOT:", SQA_ROOT)
-problems, splits = load_problems(), load_splits()
-print("problems:", len(problems))
-for k in ("train", "val", "test"):
-    pids = splits[k]
-    n_img = sum(1 for p in pids if problems[p].get("image"))
-    print(f"  {k:5s}: {len(pids):6d} questions, {n_img:6d} with images")
-caps = load_sqa_captions()
-print("captions.json:", len(caps), "entries" if caps else "MISSING - the no-KG baseline will have no image description")
-PY
+# Verify the layout every stage depends on. Fails loudly if the images are missing.
+python repro/check_data.py
 
 echo
-echo "Setup done. Next: sbatch jobs/10_caption.slurm"
+echo "Setup done. Next: bash submit_all.sh --limit 1000"

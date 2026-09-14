@@ -16,7 +16,8 @@ import re
 VALIK_ROOT = os.environ.get(
     "VALIK_ROOT", os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
-SQA_ROOT = os.path.join(VALIK_ROOT, "datasets", "ScienceQA", "data", "scienceqa")
+SQA_DATA = os.path.join(VALIK_ROOT, "datasets", "ScienceQA", "data")
+SQA_ROOT = os.path.join(SQA_DATA, "scienceqa")
 IMAGES_DIR = os.path.join(SQA_ROOT, "images")
 
 LETTERS = "ABCDE"
@@ -50,13 +51,18 @@ def load_sqa_captions():
     (Table 3, 'Qwen2.5-7B') scores 65.79 on IMG, far above chance, so the text-only
     baseline must be fed *some* description. Using ScienceQA's own captions keeps
     the baseline honest - feeding it our Qwen2-VL captions would inflate it and
-    shrink VaLiK's reported gain."""
-    path = os.path.join(SQA_ROOT, "captions.json")
-    if not os.path.exists(path):
-        return {}
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("captions", data)
+    shrink VaLiK's reported gain.
+
+    Upstream ships this at data/captions.json - one level ABOVE data/scienceqa/,
+    where problems.json and pid_splits.json live. Both locations are checked.
+    """
+    for path in (os.path.join(SQA_DATA, "captions.json"),
+                 os.path.join(SQA_ROOT, "captions.json")):
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            return data.get("captions", data)
+    return {}
 
 
 def image_dir(pid, split):
