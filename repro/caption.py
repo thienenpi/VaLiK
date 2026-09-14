@@ -62,8 +62,18 @@ def main():
         f"{len(todo)} remaining of {len(targets)} total",
         flush=True,
     )
+    if not targets:
+        print(
+            "FATAL: no images matched. Expected "
+            "datasets/ScienceQA/data/scienceqa/images/<split>/<pid>/image.png .\n"
+            "       Run  python repro/check_data.py  to see the actual layout.\n"
+            "       Failing on purpose so afterok stops the chain instead of "
+            "building an empty KG.",
+            flush=True,
+        )
+        sys.exit(1)
     if not todo:
-        print("nothing to do", flush=True)
+        print("nothing to do - every assigned image already has a description", flush=True)
         return
 
     processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)

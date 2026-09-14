@@ -4,7 +4,12 @@ Reference numbers are transcribed from the paper's Table 3 (arXiv:2503.12972v3,
 page 7). The reproduction is judged on the ordering and the gaps, not the decimals:
 dropping the BLIP-2/LLaVA cascade and the 70B graph model should cost 1-3 points.
 
-Usage: python repro/report.py [results_dir]
+Usage: python repro/report.py [results_dir] [variant]
+
+`variant` is the suffix the eval jobs stamped on their output: "full" for a complete
+run, "n1000" for a 1000-question smoke run. Defaults to "full" when present,
+otherwise the only variant on disk. Without this a directory holding both would mix
+smoke and full rows into one table and read as if it were a single run.
 """
 
 import glob
@@ -36,12 +41,34 @@ def row(label, values, extra=""):
 
 def main():
     results_dir = sys.argv[1] if len(sys.argv) > 1 else "outputs/results"
-    found = {}
+    want = sys.argv[2] if len(sys.argv) > 2 else None
+
+    # <config>-<variant>.json, e.g. text_image-full.json / nokg-n1000.json
+    by_variant = {}
     for path in sorted(glob.glob(os.path.join(results_dir, "*.json"))):
+        cfg, _, variant = os.path.basename(path)[:-5].rpartition("-")
+        if not cfg:
+            continue
         with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        name = os.path.basename(path).rsplit("-", 1)[0]
-        found[name] = data
+            by_variant.setdefault(variant, {})[cfg] = json.load(f)
+
+    if not by_variant:
+        print(f"no results in {results_dir}/ yet")
+        return
+
+    if want is None:
+        want = "full" if "full" in by_variant else sorted(by_variant)[0]
+    if want not in by_variant:
+        print(f"no '{want}' results; available: {', '.join(sorted(by_variant))}")
+        return
+    found = by_variant[want]
+
+    others = sorted(v for v in by_variant if v != want)
+    print(f"variant: {want}" + (f"   (also on disk, not shown: {', '.join(others)})" if others else ""))
+    if want != "full":
+        print("NOTE: this is a smoke run - too small for the paper's numbers. "
+              "Read the parse rate, not the score.")
+    print()
 
     if not found:
         print(f"no results in {results_dir}/ yet")

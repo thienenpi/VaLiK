@@ -82,7 +82,14 @@ def main():
         f"[shard {args.shard_id}/{args.num_shards}] {len(mine)} assigned, {len(todo)} remaining",
         flush=True,
     )
+    if not targets:
+        print(
+            "FATAL: no images matched. Run  python repro/check_data.py  to see why.",
+            flush=True,
+        )
+        sys.exit(1)
     if not todo:
+        print("nothing to do - every assigned image is already pruned", flush=True)
         return
 
     device = "cuda" if torch.cuda.is_available() else "cpu"

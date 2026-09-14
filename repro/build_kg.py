@@ -137,6 +137,13 @@ def main():
     )
 
     docs = build_documents(args.mode, args.split, args.caption_suffix, args.limit)
+    if not docs:
+        print(
+            f"FATAL: no documents for mode={args.mode}. The caption stage produced "
+            f"nothing - run  python repro/check_data.py  first.",
+            flush=True,
+        )
+        sys.exit(1)
     chars = sum(len(d) for d in docs)
     print(
         f"mode={args.mode} split={args.split}: {len(docs)} documents, "
