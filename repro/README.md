@@ -11,17 +11,16 @@ and `env.sh` / `setup.sh` / `submit_all.sh` at the repo root (run by hand, never
 # once, on the login node
 bash setup.sh
 
-# smoke run FIRST — first 1000 train + 1000 test pids, whole chain, ~1.5h
+# smoke run FIRST — first 1000 train + 1000 test pids, whole chain, ~2h
 bash submit_all.sh 1000
 python repro/report.py outputs/results        # check the parse rate, not the accuracy
 
-# then the real thing, ~12-14h
+# then the real thing, ~12h
 bash submit_all.sh
 python repro/report.py
 ```
 
-Every job takes one GPU (the cluster caps jobs at two), uses `--requeue`, and
-resumes where it stopped. Everything lives under `/media/lhbac29` — see `env.sh`.
+Every job takes one GPU, uses `--requeue`, and resumes where it stopped. Everything lives under `/media/lhbac29` — see `env.sh`.
 
 `submit_all.sh N` sets `VALIK_LIMIT=N`, which reaches **all four** stages: caption,
 prune, KG build and eval each slice the same first-N prefix of `pid_splits.json`, so
@@ -37,10 +36,14 @@ small for the paper's numbers. Read the parse rate, not the score.
 
 | Stage | Job | Paper | Wall-clock |
 |---|---|---|---|
-| Caption | `10_caption.slurm` (array 0–3) | §3.1 CoE | ~2.5h |
-| Prune | `20_prune.slurm` (array 0–3) | §3.2 SV, τ=0.20 | ~20min |
+| Caption | `10_caption.slurm` (array 0–1) | §3.1 CoE | ~4h |
+| Prune | `20_prune.slurm` (array 0–1) | §3.2 SV, τ=0.20 | ~20min |
 | Build MMKG | `30_build_kg.slurm` (array 0–1) | §3.3 / Alg. 1 | 3–6h |
-| Evaluate | `40_eval.slurm` (array 0–2) | Table 3 | ~1h |
+| Evaluate | `40_eval.slurm` (array 0–2%2) | Table 3 | ~1.5h |
+
+The cluster allows **two concurrent jobs**, and each array task counts as one, so
+every stage is sized to exactly two parallel tasks. `afterok` serialises the stages,
+so nothing competes across them.
 
 ## Deviations from the paper
 

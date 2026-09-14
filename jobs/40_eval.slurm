@@ -7,9 +7,11 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=08:00:00
 #SBATCH --requeue
-#SBATCH --array=0-2
+#SBATCH --array=0-2%2
 
-# Produce the three Table 3 rows, one array task each, Qwen2.5-7B throughout
+# Produce the three Table 3 rows, one array task each, Qwen2.5-7B throughout.
+# %2 throttles to the cluster's two concurrent job slots: the third row starts as
+# soon as one of the first two finishes, rather than all three fighting for two.
 # (paper Sec 4.1 uses 7B for retrieval and reasoning; Appendix D measures only a
 # 1-5% spread from going larger, at a large cost in time):
 #

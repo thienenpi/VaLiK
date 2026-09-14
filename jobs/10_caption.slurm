@@ -7,14 +7,15 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=12:00:00
 #SBATCH --requeue
-#SBATCH --array=0-3
+#SBATCH --array=0-1
 
 # Stage 1 of the VaLiK reproduction: turn every ScienceQA image into text.
 #
-# One array task per shard, each on its own GPU - four independent 1-GPU jobs, not
-# one 4-GPU job, so this stays inside the 2-GPU-per-job limit. Shards interleave
-# (images[i::4]) rather than splitting by split/subject, so all four finish together
-# instead of one trailing on the large train set.
+# Two array tasks, one GPU each. The cluster runs at most two jobs concurrently and
+# every array task counts as a job, so two shards is the widest that actually runs in
+# parallel - going to four would queue half of them and pay for two extra model
+# loads. Shards interleave (images[i::2]) rather than splitting by split, so both
+# finish together instead of one trailing on the large train set.
 #
 # Captions both train and test. The MMKG is built from train, but a test question's
 # image is never in that graph, so at eval time the test image reaches the model only

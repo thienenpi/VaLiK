@@ -1,13 +1,15 @@
 #!/bin/bash
 # Chain the four stages with afterok dependencies and print the job ids.
 #
-# Two graphs build in parallel (one GPU each, both inside the 2-GPU-per-job limit)
-# and the three eval rows fan out behind them.
+# The cluster runs at most two jobs at a time, so every stage is sized to exactly two
+# concurrent tasks: two caption shards, two prune shards, the two graphs, and the
+# three eval rows throttled with %2. Stages are serialised by afterok anyway, so
+# nothing ever competes across stages.
 #
 # Run setup.sh on the login node first.
 #
-#   bash submit_all.sh         full run,  ~12-14h wall-clock
-#   bash submit_all.sh 1000    smoke run, ~1.5h
+#   bash submit_all.sh         full run,  ~12h wall-clock
+#   bash submit_all.sh 1000    smoke run, ~2h
 #
 # The limit travels to *every* stage through VALIK_LIMIT, not just to the eval: a
 # smoke run captions the first N train and N test problems, builds the KG from that
@@ -36,16 +38,16 @@ else
 fi
 
 J_CAP=$(sbatch --parsable --export="$EXPORT" jobs/10_caption.slurm)
-echo "caption   : $J_CAP  (array 0-3)"
+echo "caption   : $J_CAP  (array 0-1)"
 
 J_PRUNE=$(sbatch --parsable --export="$EXPORT" --dependency=afterok:$J_CAP jobs/20_prune.slurm)
-echo "prune     : $J_PRUNE  (array 0-3, after $J_CAP)"
+echo "prune     : $J_PRUNE  (array 0-1, after $J_CAP)"
 
 J_KG=$(sbatch --parsable --export="$EXPORT" --dependency=afterok:$J_PRUNE jobs/30_build_kg.slurm)
 echo "build_kg  : $J_KG  (array 0-1: image_only, text_image; after $J_PRUNE)"
 
 J_EVAL=$(sbatch --parsable --export="$EXPORT" --dependency=afterok:$J_KG jobs/40_eval.slurm)
-echo "eval      : $J_EVAL  (array 0-2: nokg, image_only, text_image; after $J_KG)"
+echo "eval      : $J_EVAL  (array 0-2%2: nokg, image_only, text_image; after $J_KG)"
 
 echo
 echo "watch   : squeue -u \$USER"

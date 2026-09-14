@@ -26,8 +26,14 @@ python -m pip install --upgrade "vllm>=0.6.3"
 python -m pip install \
     "transformers>=4.49" accelerate qwen-vl-utils einops \
     nltk pillow opencv-python \
-    nano-vectordb networkx graspologic "scipy>=1.13" tiktoken tenacity xxhash \
-    openai aiohttp aiofiles pydantic python-dotenv tqdm numpy
+    nano-vectordb networkx graspologic tiktoken tenacity xxhash \
+    openai aiohttp aiofiles pydantic python-dotenv tqdm
+
+# numpy 1.x, last. vLLM pulls numpy 2, but the python310 env is shared and full
+# of wheels compiled against the 1.x ABI (pyarrow, pandas, scipy, contourpy);
+# under numpy 2 they die with "AttributeError: _ARRAY_API not found". Everything
+# this pipeline needs runs on 1.26, so pin down rather than chase each wheel.
+python -m pip install "numpy<2"
 
 python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 

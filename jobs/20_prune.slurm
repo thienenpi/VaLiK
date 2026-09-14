@@ -7,13 +7,13 @@
 #SBATCH --gres=gpu:1
 #SBATCH --time=04:00:00
 #SBATCH --requeue
-#SBATCH --array=0-3
+#SBATCH --array=0-1
 
 # Stage 2: Cross-Modal Similarity Verification (paper Sec 3.2), tau = 0.20.
 #
 # Cheap - CLIP scores a whole caption in milliseconds, the paper calls the stage
-# "negligible" (Appendix F) - but still sharded so it inherits the same 1-GPU shape
-# as stage 1 and can run right behind it.
+# "negligible" (Appendix F) - but still two shards, matching stage 1 and the
+# cluster's two concurrent job slots.
 #
 # Reads image.txt, writes image.pruned.txt. Keeping both means the ablation rows of
 # Table 4 (-SV) cost nothing extra later: point build_kg.py at --caption-suffix .txt
