@@ -60,6 +60,8 @@ if [ -f "${WORKDIR}/.build_done" ]; then
     exit 0
 fi
 
+require_cuda "the KG build" || exit 1
+
 start_vllm "$KG_MODEL" || exit 1
 
 # max-async 32, not the 160 of lightrag_ollama_demo.py:23. That number was tuned

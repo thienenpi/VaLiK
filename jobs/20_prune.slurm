@@ -40,6 +40,7 @@ conda activate python310
 
 echo "Job $SLURM_JOB_ID on $(hostname); shard $SHARD/$NSHARD; tau=$THRESHOLD; limit=$LIMIT; started $(date)"
 nvidia-smi || true
+require_cuda "CLIP similarity verification" || exit 1
 
 python repro/prune.py \
     --model "$CLIP_MODEL" \

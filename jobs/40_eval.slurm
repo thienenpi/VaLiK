@@ -8,7 +8,9 @@
 #SBATCH --time=08:00:00
 #SBATCH --requeue
 #SBATCH --array=0-2%2
-#SBATCH --exclude=gpu04,gpu03
+# Node exclusions live in env.sh ($VALIK_EXCLUDE) and are passed by submit_all.sh, so
+# one list covers all four stages. Submitting this file by hand bypasses it - use
+#   sbatch --exclude="$VALIK_EXCLUDE" jobs/40_eval.slurm
 
 # Produce the three Table 3 rows, one array task each, Qwen2.5-7B throughout.
 # %2 throttles to the cluster's two concurrent job slots: the third row starts as
@@ -59,6 +61,8 @@ if [ -f "${OUT}.json" ]; then
     cat "${OUT}.json"
     exit 0
 fi
+
+require_cuda "the eval" || exit 1
 
 start_vllm "$QA_MODEL" || exit 1
 

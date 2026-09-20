@@ -37,6 +37,9 @@
 set -euo pipefail
 cd "$(dirname "$0")" || exit 1
 
+# For $VALIK_EXCLUDE: the nodes whose driver is too old for the installed torch.
+source env.sh
+
 STAGES=(caption prune kg eval)
 LIMIT=0
 ONLY=""
@@ -72,6 +75,10 @@ fi
 
 mkdir -p logs outputs/results
 EXPORT="ALL,VALIK_LIMIT=${LIMIT}"
+
+# Empty means "no exclusion", which sbatch would reject as an empty --exclude.
+EXCL=()
+[ -n "${VALIK_EXCLUDE:-}" ] && EXCL=(--exclude="$VALIK_EXCLUDE")
 
 # Which stages to submit, in order.
 SELECTED=()
@@ -118,6 +125,11 @@ else
 fi
 [ "$DRY" = 1 ] && echo "### DRY RUN - nothing will be submitted ###"
 echo "stages: ${SELECTED[*]}"
+if [ -n "${VALIK_EXCLUDE:-}" ]; then
+    echo "exclude: $VALIK_EXCLUDE  (driver too old for the installed torch)"
+else
+    echo "exclude: none - every node must satisfy the installed torch"
+fi
 echo
 
 PREV=""
@@ -133,12 +145,12 @@ for s in "${SELECTED[@]}"; do
     [ -n "$PREV" ] && dep=(--dependency=afterok:"$PREV")
 
     if [ "$DRY" = 1 ]; then
-        echo "sbatch --export=$EXPORT ${dep[*]} $script ${args[*]}"
+        echo "sbatch --export=$EXPORT ${EXCL[*]-} ${dep[*]} $script ${args[*]}"
         PREV="<${s}_id>"
         continue
     fi
 
-    id=$(sbatch --parsable --export="$EXPORT" "${dep[@]}" "$script" "${args[@]}")
+    id=$(sbatch --parsable --export="$EXPORT" "${EXCL[@]}" "${dep[@]}" "$script" "${args[@]}")
     printf "%-9s : %s  (%s)%s\n" "$s" "$id" "$(shape_of "$s")" \
         "$([ -n "$PREV" ] && echo ", after $PREV")"
     [ -z "$FIRST_ID" ] && FIRST_ID="$id"

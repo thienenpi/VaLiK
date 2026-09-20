@@ -77,6 +77,11 @@ def main():
         return
 
     processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)
+    # torch_dtype=, not the dtype= that replaces it: dtype= only arrives in
+    # transformers 4.56, and setup.sh holds transformers below 4.47 to match the
+    # pinned vLLM. On 4.56+ this warns ("`torch_dtype` is deprecated!") and works;
+    # on 4.46 dtype= would be swallowed as an unknown kwarg and the model would load
+    # in fp32 - a silent 2x memory hit, so the deprecated spelling is the safe one.
     model = AutoModelForImageTextToText.from_pretrained(
         args.model, torch_dtype=torch.bfloat16, trust_remote_code=True
     ).to("cuda")

@@ -44,6 +44,7 @@ conda activate python310
 
 echo "Job $SLURM_JOB_ID on $(hostname); shard $SHARD/$NSHARD; splits=$SPLITS; limit=$LIMIT; started $(date)"
 nvidia-smi || true
+require_cuda "Qwen2-VL captioning" || exit 1
 
 # max-new-tokens 384, not the 32768 in src/Image_to_Text/Qwen2VL_ScienceQA.py:65.
 # The paper's own throughput figure (Appendix F: 60 tok/s, one image every 4 s)

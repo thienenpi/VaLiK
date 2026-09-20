@@ -93,14 +93,20 @@ def main():
         return
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device == "cpu":
+        # Not fatal - CLIP on CPU is slow but finishes - yet it is never what the
+        # job asked for, so say so instead of letting a driver problem look like a
+        # successful run. jobs/20_prune.slurm calls require_cuda before us.
+        print("WARNING: no usable GPU, scoring on CPU", flush=True)
     model = CLIPModel.from_pretrained(args.model).to(device).eval()
     processor = CLIPProcessor.from_pretrained(args.model)
 
-    n_kept = n_total = n_empty = n_done = 0
+    n_kept = n_total = n_empty = n_done = n_missing = 0
     for split, pid, img_path in todo:
         out = os.path.join(os.path.dirname(img_path), "image" + args.out_suffix)
         text = read_caption(pid, split, args.in_suffix)
         if not text:
+            n_missing += 1
             continue
         try:
             chunks = [c.strip() for c in chunk_text(text, args.mode, args.window_size) if c.strip()]
@@ -145,9 +151,27 @@ def main():
     print(
         f"shard {args.shard_id}: {n_done} files, kept {n_kept}/{n_total} "
         f"({100.0 * n_kept / max(n_total, 1):.1f}%) sentences, "
-        f"{n_empty} fully-pruned files restored",
+        f"{n_empty} fully-pruned files restored, "
+        f"{n_missing} skipped for a missing image{args.in_suffix}",
         flush=True,
     )
+
+    # A shard that wrote nothing because stage 1 left no captions is a failed shard,
+    # not an empty one. Exiting 0 here is what let the chain carry on after both
+    # caption shards died on the driver: prune logged "0 files, kept 0/0 (0.0%)",
+    # afterok was satisfied, and the KG build went looking for descriptions that were
+    # never written.
+    if n_done == 0:
+        print(
+            f"FATAL: shard {args.shard_id} wrote no image{args.out_suffix} at all "
+            f"({n_missing} of {len(todo)} assigned images had no "
+            f"image{args.in_suffix}).\n"
+            "       Stage 1 (jobs/10_caption.slurm) has not run or did not finish; "
+            "check its log before re-running this one.",
+            file=sys.stderr,
+            flush=True,
+        )
+        sys.exit(1)
 
 
 if __name__ == "__main__":
