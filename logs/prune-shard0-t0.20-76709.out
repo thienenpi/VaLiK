@@ -1,0 +1,27 @@
+Job 76709 on gpu01; shard 0/2; tau=0.20; limit=1000; started Thu Sep 17 09:35:36 AM UTC 2026
+Thu Sep 17 09:35:36 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:4E:00.0 Off |                    0 |
+| N/A   31C    P0    54W / 400W |      0MiB / 40960MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+[shard 0/2] 499 assigned, 499 remaining
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/cuda/__init__.py:188: UserWarning: CUDA initialization: The NVIDIA driver on your system is too old (found version 12000). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver. (Triggered internally at /__w/pytorch/pytorch/c10/cuda/CUDAFunctions.cpp:119.)
+  return torch._C._cuda_getDeviceCount() > 0
+Loading weights:   0%|          | 0/590 [00:00<?, ?it/s]Loading weights:  35%|███▌      | 209/590 [00:00<00:00, 2073.18it/s]Loading weights:  71%|███████   | 417/590 [00:00<00:00, 1060.49it/s]Loading weights:  93%|█████████▎| 549/590 [00:00<00:00, 982.78it/s] Loading weights: 100%|██████████| 590/590 [00:00<00:00, 1061.22it/s]
+shard 0: 0 files, kept 0/0 (0.0%) sentences, 0 fully-pruned files restored
+Finished Thu Sep 17 09:42:49 AM UTC 2026

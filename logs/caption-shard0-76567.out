@@ -1,0 +1,48 @@
+Job 76567 on gpu01; shard 0/2; splits=train test; limit=1000; started Mon Sep 14 04:23:07 PM UTC 2026
+Mon Sep 14 16:23:07 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:47:00.0 Off |                    0 |
+| N/A   29C    P0    54W / 400W |      0MiB / 40960MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+[shard 0/2] 499 assigned, 499 remaining of 998 total
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Fetching 5 files:   0%|          | 0/5 [00:00<?, ?it/s]Fetching 5 files:  40%|████      | 2/5 [19:21<29:02, 580.85s/it]Fetching 5 files:  60%|██████    | 3/5 [19:22<11:18, 339.05s/it]Fetching 5 files:  80%|████████  | 4/5 [19:25<03:33, 213.70s/it]Fetching 5 files: 100%|██████████| 5/5 [19:59<00:00, 151.16s/it]Fetching 5 files: 100%|██████████| 5/5 [19:59<00:00, 239.84s/it]
+Loading weights:   0%|          | 0/730 [00:00<?, ?it/s]Loading weights:  12%|█▏        | 89/730 [00:00<00:01, 335.19it/s]Loading weights:  17%|█▋        | 123/730 [00:00<00:03, 163.53it/s]Loading weights:  19%|█▉        | 142/730 [00:01<00:08, 72.58it/s] Loading weights:  21%|██        | 154/730 [00:01<00:10, 55.18it/s]Loading weights:  22%|██▏       | 162/730 [00:02<00:13, 43.34it/s]Loading weights:  23%|██▎       | 169/730 [00:02<00:13, 41.87it/s]Loading weights:  25%|██▍       | 180/730 [00:02<00:14, 38.40it/s]Loading weights:  25%|██▌       | 185/730 [00:03<00:13, 39.05it/s]Loading weights:  26%|██▋       | 192/730 [00:03<00:13, 39.34it/s]Loading weights:  27%|██▋       | 197/730 [00:03<00:17, 30.67it/s]Loading weights:  28%|██▊       | 205/730 [00:03<00:14, 37.27it/s]Loading weights:  29%|██▉       | 210/730 [00:03<00:15, 33.84it/s]Loading weights:  29%|██▉       | 215/730 [00:04<00:18, 28.44it/s]Loading weights:  32%|███▏      | 234/730 [00:04<00:12, 38.42it/s]Loading weights:  34%|███▎      | 246/730 [00:04<00:09, 49.56it/s]Loading weights:  35%|███▍      | 253/730 [00:04<00:12, 38.19it/s]Loading weights:  35%|███▌      | 259/730 [00:05<00:14, 32.04it/s]Loading weights:  37%|███▋      | 270/730 [00:05<00:12, 36.52it/s]Loading weights:  38%|███▊      | 279/730 [00:05<00:13, 34.68it/s]Loading weights:  39%|███▉      | 283/730 [00:05<00:15, 29.04it/s]Loading weights:  40%|████      | 293/730 [00:06<00:12, 36.22it/s]Loading weights:  41%|████▏     | 302/730 [00:06<00:12, 33.13it/s]Loading weights:  42%|████▏     | 306/730 [00:06<00:19, 22.15it/s]Loading weights:  42%|████▏     | 309/730 [00:07<00:20, 20.87it/s]Loading weights:  44%|████▍     | 320/730 [00:07<00:20, 20.32it/s]Loading weights:  46%|████▌     | 335/730 [00:07<00:13, 30.34it/s]Loading weights:  46%|████▋     | 339/730 [00:08<00:18, 21.14it/s]Loading weights:  47%|████▋     | 344/730 [00:08<00:17, 21.68it/s]Loading weights:  48%|████▊     | 351/730 [00:09<00:19, 19.41it/s]Loading weights:  48%|████▊     | 354/730 [00:09<00:18, 19.82it/s]Loading weights:  49%|████▉     | 357/730 [00:09<00:25, 14.71it/s]Loading weights:  50%|████▉     | 362/730 [00:09<00:21, 17.16it/s]Loading weights:  51%|█████     | 372/730 [00:10<00:18, 19.36it/s]Loading weights:  53%|█████▎    | 384/730 [00:10<00:12, 27.44it/s]Loading weights:  53%|█████▎    | 388/730 [00:10<00:16, 20.49it/s]Loading weights:  54%|█████▍    | 393/730 [00:11<00:14, 23.30it/s]Loading weights:  54%|█████▍    | 397/730 [00:11<00:13, 24.03it/s]Loading weights:  55%|█████▍    | 400/730 [00:11<00:15, 21.48it/s]Loading weights:  56%|█████▌    | 406/730 [00:11<00:15, 20.30it/s]Loading weights:  57%|█████▋    | 415/730 [00:11<00:11, 27.91it/s]Loading weights:  57%|█████▋    | 419/730 [00:12<00:11, 26.84it/s]Loading weights:  58%|█████▊    | 423/730 [00:12<00:14, 21.16it/s]Loading weights:  58%|█████▊    | 427/730 [00:13<00:27, 10.95it/s]Loading weights:  62%|██████▏   | 455/730 [00:13<00:10, 26.26it/s]Loading weights:  63%|██████▎   | 460/730 [00:13<00:10, 24.60it/s]Loading weights:  63%|██████▎   | 463/730 [00:14<00:11, 23.62it/s]Loading weights:  64%|██████▍   | 466/730 [00:14<00:15, 16.95it/s]Loading weights:  65%|██████▌   | 475/730 [00:15<00:14, 17.77it/s]Loading weights:  67%|██████▋   | 492/730 [00:15<00:07, 31.32it/s]Loading weights:  68%|██████▊   | 498/730 [00:16<00:14, 16.37it/s]Loading weights:  69%|██████▉   | 502/730 [00:16<00:13, 17.52it/s]Loading weights:  69%|██████▉   | 506/730 [00:16<00:14, 15.27it/s]Loading weights:  72%|███████▏  | 522/730 [00:16<00:07, 27.71it/s]Loading weights:  72%|███████▏  | 528/730 [00:17<00:07, 27.90it/s]Loading weights:  73%|███████▎  | 533/730 [00:17<00:07, 27.09it/s]Loading weights:  74%|███████▎  | 537/730 [00:17<00:06, 27.81it/s]Loading weights:  74%|███████▍  | 541/730 [00:17<00:08, 21.73it/s]Loading weights:  75%|███████▍  | 544/730 [00:18<00:09, 20.44it/s]Loading weights:  76%|███████▌  | 552/730 [00:18<00:07, 23.21it/s]Loading weights:  76%|███████▌  | 556/730 [00:18<00:07, 23.13it/s]Loading weights:  77%|███████▋  | 559/730 [00:18<00:08, 20.03it/s]Loading weights:  77%|███████▋  | 563/730 [00:18<00:08, 19.48it/s]Loading weights:  78%|███████▊  | 566/730 [00:19<00:08, 18.85it/s]Loading weights:  79%|███████▊  | 574/730 [00:19<00:11, 13.60it/s]Loading weights:  80%|████████  | 586/730 [00:20<00:06, 20.66it/s]Loading weights:  81%|████████  | 589/730 [00:20<00:07, 19.09it/s]Loading weights:  81%|████████  | 592/730 [00:20<00:07, 18.34it/s]Loading weights:  81%|████████▏ | 594/730 [00:20<00:08, 16.09it/s]Loading weights:  82%|████████▏ | 597/730 [00:21<00:08, 14.84it/s]Loading weights:  83%|████████▎ | 607/730 [00:21<00:04, 26.00it/s]Loading weights:  84%|████████▎ | 611/730 [00:21<00:08, 14.31it/s]Loading weights:  85%|████████▌ | 624/730 [00:22<00:04, 21.64it/s]Loading weights:  86%|████████▋ | 630/730 [00:22<00:04, 23.69it/s]Loading weights:  87%|████████▋ | 634/730 [00:22<00:04, 19.56it/s]Loading weights:  88%|████████▊ | 642/730 [00:22<00:03, 26.11it/s]Loading weights:  88%|████████▊ | 646/730 [00:23<00:03, 25.22it/s]Loading weights:  90%|█████████ | 658/730 [00:23<00:03, 20.68it/s]Loading weights:  91%|█████████ | 661/730 [00:23<00:03, 20.86it/s]Loading weights:  91%|█████████ | 664/730 [00:24<00:03, 17.30it/s]Loading weights:  93%|█████████▎| 679/730 [00:24<00:02, 19.85it/s]Loading weights:  95%|█████████▌| 697/730 [00:25<00:01, 23.88it/s]Loading weights:  97%|█████████▋| 708/730 [00:25<00:00, 25.81it/s]Loading weights:  98%|█████████▊| 718/730 [00:25<00:00, 31.55it/s]Loading weights:  99%|█████████▉| 723/730 [00:26<00:00, 32.50it/s]Loading weights: 100%|██████████| 730/730 [00:26<00:00, 28.02it/s]
+Traceback (most recent call last):
+  File "/media/lhbac29/valik/repro/caption.py", line 143, in <module>
+    main()
+  File "/media/lhbac29/valik/repro/caption.py", line 82, in main
+    ).to("cuda")
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3706, in to
+    return super().to(*args, **kwargs)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1383, in to
+    return self._apply(convert)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 933, in _apply
+    module._apply(fn)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 933, in _apply
+    module._apply(fn)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 933, in _apply
+    module._apply(fn)
+  [Previous line repeated 1 more time]
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 964, in _apply
+    param_applied = fn(param)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1369, in convert
+    return t.to(
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/torch/cuda/__init__.py", line 529, in _lazy_init
+    torch._C._cuda_init()
+RuntimeError: The NVIDIA driver on your system is too old (found version 12000). Please update your GPU driver by downloading and installing a new version from the URL: http://www.nvidia.com/Download/index.aspx Alternatively, go to: https://pytorch.org to install a PyTorch version that has been compiled with your version of the CUDA driver.

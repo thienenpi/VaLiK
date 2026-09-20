@@ -8,6 +8,7 @@
 #SBATCH --time=08:00:00
 #SBATCH --requeue
 #SBATCH --array=0-2%2
+#SBATCH --exclude=gpu04,gpu03
 
 # Produce the three Table 3 rows, one array task each, Qwen2.5-7B throughout.
 # %2 throttles to the cluster's two concurrent job slots: the third row starts as
