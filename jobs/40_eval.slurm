@@ -8,33 +8,23 @@
 #SBATCH --time=08:00:00
 #SBATCH --requeue
 #SBATCH --array=0-2%2
-# Node exclusions live in env.sh ($VALIK_EXCLUDE) and are passed by submit_all.sh, so
-# one list covers all four stages. Submitting this file by hand bypasses it - use
-#   sbatch --exclude="$VALIK_EXCLUDE" jobs/40_eval.slurm
-
-# Produce the three Table 3 rows, one array task each, Qwen2.5-7B throughout.
-# %2 throttles to the cluster's two concurrent job slots: the third row starts as
-# soon as one of the first two finishes, rather than all three fighting for two.
-# (paper Sec 4.1 uses 7B for retrieval and reasoning; Appendix D measures only a
-# 1-5% spread from going larger, at a large cost in time):
+# Node exclusions come from $VALIK_EXCLUDE via submit_all.sh; submitting this file
+# by hand bypasses them - use  sbatch --exclude="$VALIK_EXCLUDE" jobs/40_eval.slurm
+#
+# The three Table 3 rows, one array task each, Qwen2.5-7B throughout (%2 = the two
+# concurrent job slots):
 #
 #   task 0  nokg        Qwen2.5-7B                        paper 74.72
 #   task 1  image_only  Qwen2.5-7B (VaLiK Image-only)     paper 78.88
 #   task 2  text_image  Qwen2.5-7B (VaLiK Text-Image)     paper 83.16
 #
-# Task 0 deliberately reads ScienceQA's own captions.json rather than our Qwen2-VL
-# descriptions. Table 3 gives the un-augmented baseline 65.79 on the IMG column,
-# well above chance, so it is clearly fed some description; feeding it ours would
-# raise the baseline and shrink the gain VaLiK is credited with.
+# Task 0 reads ScienceQA's own captions.json, not our Qwen2-VL descriptions: the
+# paper's baseline scores 65.79 on IMG, so it is clearly fed some description, and
+# feeding it ours would shrink the gain VaLiK is credited with.
 #
-# The goal is the ordering, not the decimals: 74.72 < 78.88 < 83.16, with the
-# 7B+VaLiK row beating native Qwen2.5-72B (78.37). Expect 1-3 points below the paper
-# from dropping the BLIP-2/LLaVA cascade and the 70B graph model. A parse rate below
-# ~95% in the log means the prompt is wrong, not the KG - fix that before reading
-# any accuracy.
-#
-# Requeue safety: answers stream to <out>.jsonl and finished pids are skipped on
-# restart, so a preempted eval resumes mid-split.
+# Judge the ordering, not the decimals - expect 1-3 points below the paper from
+# dropping the BLIP-2/LLaVA cascade and the 70B graph model. A parse rate below ~95%
+# means the prompt is wrong, not the KG. Requeue-safe: answers stream to <out>.jsonl.
 #
 # Usage: sbatch jobs/40_eval.slurm                          (full test split)
 #        sbatch --export=ALL,VALIK_LIMIT=500 jobs/40_eval.slurm   (smoke)
@@ -79,8 +69,7 @@ else
         echo "ERROR: ${WORKDIR} not built yet - run jobs/30_build_kg.slurm first" >&2
         exit 1
     fi
-    # hybrid: paper Appendix D, "balances the precision of local cues with the
-    # breadth of global knowledge".
+    # hybrid: paper Appendix D, local cues plus global knowledge.
     python repro/eval_scienceqa.py \
         --mode kg --working-dir "$WORKDIR" \
         --base-url "$BASE_URL" --llm-model "$QA_MODEL" \

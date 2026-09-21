@@ -11,18 +11,12 @@
 
 # Stage 2: Cross-Modal Similarity Verification (paper Sec 3.2), tau = 0.20.
 #
-# Cheap - CLIP scores a whole caption in milliseconds, the paper calls the stage
-# "negligible" (Appendix F) - but still two shards, matching stage 1 and the
-# cluster's two concurrent job slots.
+# Cheap (~15 min). Reads image.txt, writes image.pruned.txt; keeping both makes the
+# -SV ablation free later via build_kg.py --caption-suffix .txt.
 #
-# Reads image.txt, writes image.pruned.txt. Keeping both means the ablation rows of
-# Table 4 (-SV) cost nothing extra later: point build_kg.py at --caption-suffix .txt
-# instead and no image has to be re-captioned.
-#
-# Expect the log to report roughly half the sentences surviving. Do NOT tune tau to
-# make the downstream number look better: Table 4 has SV *reducing* ScienceQA
-# image-only accuracy (NAT -0.92, LAN -1.28), so reproducing that dip is evidence the
-# implementation is faithful.
+# Expect roughly half the sentences to survive. Do NOT tune tau to improve the
+# downstream number - Table 4 has SV *reducing* image-only accuracy, so reproducing
+# that dip is evidence the implementation is faithful.
 #
 # Usage: sbatch jobs/20_prune.slurm [tau]        (default: $TAU from env.sh)
 

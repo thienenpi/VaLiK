@@ -1,22 +1,14 @@
 """Stage 2 - Cross-Modal Similarity Verification (paper Sec 3.2).
 
-Sentence-level sliding window, CLIP-ViT-L/14 cosine, tau = 0.20 for ScienceQA
-(paper Sec 4.1). Sharded so it fits the 1-GPU-per-job budget; CLIP is cheap, the
-whole stage is ~15 min.
+Sentence-level, CLIP-ViT-L/14 cosine, tau = 0.20 (paper Sec 4.1). ~15 min total.
 
-Two fixes over src/Prune/similarity_verification.py:
-  * truncation=True. Upstream calls the processor with padding=True but no
-    truncation, and CLIP's text encoder caps at 77 tokens - a single long sentence
-    from Qwen2-VL blows up the whole batch. The file's own comment on line 81
-    acknowledges the limit without handling it.
-  * empty-result guard. When every sentence scores below tau the upstream code
-    writes an empty file; for image-only KGs that silently deletes the image from
-    the knowledge base. We keep the original text and count it instead, so the
-    over-pruning shows up in the log rather than as a missing node.
+Two fixes over src/Prune/similarity_verification.py: truncation=True, since CLIP's
+text encoder caps at 77 tokens and one long sentence otherwise blows up the batch;
+and an empty-result guard, since upstream writes an empty file when everything
+scores below tau, silently dropping the image from an image-only KG.
 
-Table 4 of the paper reports SV *hurting* ScienceQA image-only (NAT -0.92,
-LAN -1.28). Reproducing that dip is a signal the implementation is faithful, not
-a bug to tune away.
+Paper Table 4 has SV *hurting* image-only accuracy - reproducing that dip is a good
+sign, not a bug to tune away.
 
 Usage:
     python repro/prune.py --shard-id 0 --num-shards 4 --threshold 0.20
@@ -94,8 +86,7 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cpu":
-        # Not fatal - CLIP on CPU is slow but finishes - yet it is never what the
-        # job asked for, so say so instead of letting a driver problem look like a
+        # Slow but not fatal; say so rather than let a driver problem pass for a
         # successful run. jobs/20_prune.slurm calls require_cuda before us.
         print("WARNING: no usable GPU, scoring on CPU", flush=True)
     model = CLIPModel.from_pretrained(args.model).to(device).eval()
@@ -126,7 +117,7 @@ def main():
                 ).to(device)
                 with torch.inference_mode():
                     o = model(**inputs)
-                # HF returns L2-normalised projections, so this dot product is the
+                # HF projections are L2-normalised, so this dot product is the
                 # cosine of paper Eq. 7.
                 sims.extend((o.image_embeds @ o.text_embeds.T).squeeze(0).float().cpu().tolist())
 
@@ -157,10 +148,8 @@ def main():
     )
 
     # A shard that wrote nothing because stage 1 left no captions is a failed shard,
-    # not an empty one. Exiting 0 here is what let the chain carry on after both
-    # caption shards died on the driver: prune logged "0 files, kept 0/0 (0.0%)",
-    # afterok was satisfied, and the KG build went looking for descriptions that were
-    # never written.
+    # not an empty one - exiting 0 here would satisfy afterok and send the KG build
+    # looking for descriptions that were never written.
     if n_done == 0:
         print(
             f"FATAL: shard {args.shard_id} wrote no image{args.out_suffix} at all "

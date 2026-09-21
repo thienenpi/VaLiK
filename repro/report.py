@@ -1,15 +1,14 @@
 """Collect outputs/results/*.json into a Table 3 comparison.
 
-Reference numbers are transcribed from the paper's Table 3 (arXiv:2503.12972v3,
-page 7). The reproduction is judged on the ordering and the gaps, not the decimals:
-dropping the BLIP-2/LLaVA cascade and the 70B graph model should cost 1-3 points.
+Reference numbers are from the paper's Table 3 (arXiv:2503.12972v3, page 7). Judge
+the ordering and the gaps, not the decimals - dropping the BLIP-2/LLaVA cascade and
+the 70B graph model should cost 1-3 points.
 
 Usage: python repro/report.py [results_dir] [variant]
 
-`variant` is the suffix the eval jobs stamped on their output: "full" for a complete
-run, "n1000" for a 1000-question smoke run. Defaults to "full" when present,
-otherwise the only variant on disk. Without this a directory holding both would mix
-smoke and full rows into one table and read as if it were a single run.
+`variant` is the suffix the eval jobs stamped on their output ("full", "n1000"), so
+a directory holding both does not mix smoke and full rows into one table. Defaults
+to "full" when present, otherwise the only variant on disk.
 """
 
 import glob
@@ -32,7 +31,7 @@ PAPER = {
     "text_only": ("Qwen2.5-7B (VaLiK Text-only)",
                   [84.54, 74.24, 86.91, 82.74, 72.53, 90.03, 84.51, 80.28, 82.98]),
 }
-QWEN72B_AVG = 78.37  # Table 3, native Qwen2.5-72B - the bar the 7B+VaLiK row clears
+QWEN72B_AVG = 78.37  # Table 3, native Qwen2.5-72B: the bar the 7B+VaLiK row clears
 
 
 def row(label, values, extra=""):

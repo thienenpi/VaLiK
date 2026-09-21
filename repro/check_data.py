@@ -1,11 +1,8 @@
 """Diagnose why a stage found no images.
 
-caption.py and prune.py walk images/<split>/<pid>/image.{png,jpg,jpeg}, the layout
-the upstream CLIP_Interrogator_ScienceQA.py assumes and the one the repo README
-documents (datasets/ScienceQA/data/scienceqa/images/train/1/image.png). If
-ScienceQA's tools/download.sh laid the images out differently - or silently failed,
-which its Google Drive fetches do - every stage reports "nothing to do" and the
-chain happily builds an empty KG.
+Every stage walks images/<split>/<pid>/image.{png,jpg,jpeg}. If the dataset landed
+in another layout - ScienceQA's tools/download.sh fails silently - each stage just
+reports "nothing to do" and the chain builds an empty KG.
 
 Usage: python repro/check_data.py [limit]
 """
@@ -66,7 +63,7 @@ def main():
     if os.path.isdir(IMAGES_DIR):
         entries = sorted(os.listdir(IMAGES_DIR))[:10]
         print(f"  {len(os.listdir(IMAGES_DIR))} entries, first few: {entries}")
-        # How deep do the actual image files sit?
+        # How deep do the image files actually sit?
         for pattern in ("*.png", "*/*.png", "*/*/*.png", "*/*/*/*.png"):
             hits = glob.glob(os.path.join(IMAGES_DIR, pattern))
             print(f"  {pattern:14} -> {len(hits)} files"

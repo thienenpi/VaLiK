@@ -1,25 +1,17 @@
 """Evaluation harness for paper Table 3 (ScienceQA).
 
-The upstream repo ships no evaluation code at all - `grep -rniE
-"accuracy|evaluate|f1_score|sklearn"` over everything outside the vendored LightRAG
-returns nothing - so the prompt format and answer parsing below are this
-reproduction's own reading of Sec 4.1 ("Task-specific prompts are designed to assist
-LLMs in multimodal reasoning evaluation"), not the authors' code. Treat the absolute
-numbers accordingly; what should reproduce is the ordering and the gaps.
+The upstream repo ships no evaluation code, so the prompt format and answer parsing
+here are this reproduction's own reading of Sec 4.1, not the authors'. Judge the
+ordering and the gaps, not the absolute numbers.
 
 Which description each row sees:
-  --mode nokg  + --caption-source sqa    the vanilla Qwen2.5-7B row. ScienceQA's own
-      captions.json, not ours: Table 3 gives the un-augmented baseline 65.79 on IMG,
-      far above chance, so it is clearly fed a description. Handing it our Qwen2-VL
-      captions would inflate the baseline and shrink VaLiK's reported gain.
-  --mode kg    + --caption-source valik  the VaLiK rows. The MMKG is built from the
-      *train* split, so it cannot contain the test image; the test image reaches the
-      model only through its own pruned description, with the KG supplying
-      background knowledge. This is why CLIP_Interrogator_ScienceQA.py captions
-      train/val/test rather than train alone.
+  --mode nokg + --caption-source sqa    ScienceQA's own captions.json, not ours -
+      feeding the baseline our captions would shrink VaLiK's reported gain.
+  --mode kg   + --caption-source valik  the MMKG is built from train, so a test
+      image reaches the model only through its own pruned description.
 
-Results stream to <out>.jsonl as they land and finished pids are skipped on restart,
-so this is safe under --requeue.
+Results stream to <out>.jsonl and finished pids are skipped, so this is
+--requeue safe.
 
 Usage:
     python repro/eval_scienceqa.py --mode kg --working-dir outputs/kg_text_image \
@@ -139,8 +131,7 @@ async def main():
         from lightrag.utils import EmbeddingFunc
 
         async def llm_model_func(prompt, system_prompt=None, history_messages=None, **kwargs):
-            # See repro/build_kg.py: LightRAG passes response_format="json" as a bare
-            # string, which vLLM rejects with a 400.
+            # See repro/build_kg.py: bare "json" is rejected by vLLM with a 400.
             if kwargs.pop("keyword_extraction", False):
                 kwargs["response_format"] = {"type": "json_object"}
             model_name = kwargs["hashing_kv"].global_config["llm_model_name"]

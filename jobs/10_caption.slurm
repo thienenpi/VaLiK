@@ -9,23 +9,12 @@
 #SBATCH --requeue
 #SBATCH --array=0-1
 
-# Stage 1 of the VaLiK reproduction: turn every ScienceQA image into text.
+# Stage 1: turn every ScienceQA image into text (paper Sec 3.1).
 #
-# Two array tasks, one GPU each. The cluster runs at most two jobs concurrently and
-# every array task counts as a job, so two shards is the widest that actually runs in
-# parallel - going to four would queue half of them and pay for two extra model
-# loads. Shards interleave (images[i::2]) rather than splitting by split, so both
-# finish together instead of one trailing on the large train set.
-#
-# Captions both train and test. The MMKG is built from train, but a test question's
-# image is never in that graph, so at eval time the test image reaches the model only
-# through its own description - which is why the upstream
-# CLIP_Interrogator_ScienceQA.py also walks train/val/test. val is skipped: nothing
-# in Table 3 uses it, and Get_Text_ScienceQA.py comments out the val pids too.
-#
-# Requeue safety comes from the per-image skip: caption.py writes image.txt
-# atomically (tmp + os.replace) and skips any image that already has one, so a
-# preempted shard resumes at the image it was on rather than restarting.
+# Two shards, one GPU each - the cluster runs two jobs at a time. Shards interleave
+# (images[i::2]) so both finish together. Captions train and test, not val: the MMKG
+# comes from train, but a test image reaches the model only through its own
+# description. Requeue-safe via the per-image skip in caption.py.
 #
 # Usage: sbatch jobs/10_caption.slurm            (defaults: train+test, .txt)
 #        sbatch jobs/10_caption.slurm "train"    (train only)
@@ -46,9 +35,8 @@ echo "Job $SLURM_JOB_ID on $(hostname); shard $SHARD/$NSHARD; splits=$SPLITS; li
 nvidia-smi || true
 require_cuda "Qwen2-VL captioning" || exit 1
 
-# max-new-tokens 384, not the 32768 in src/Image_to_Text/Qwen2VL_ScienceQA.py:65.
-# The paper's own throughput figure (Appendix F: 60 tok/s, one image every 4 s)
-# implies ~240 tokens, so the upstream budget only buys slower generation.
+# max-new-tokens 384, not upstream's 32768: Appendix F's throughput implies ~240
+# tokens, so the bigger budget only buys slower generation.
 python repro/caption.py \
     --model "$VLM_MODEL" \
     --splits $SPLITS \

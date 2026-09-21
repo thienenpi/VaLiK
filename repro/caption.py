@@ -1,16 +1,9 @@
 """Stage 1 - CoE-based Visual to Language Modeling (paper Sec 3.1), minimal variant.
 
-The paper cascades BLIP-2 -> LLaVA -> Qwen2-VL (Eq. 2). We run Qwen2-VL-7B alone,
-which the authors explicitly sanction in Appendix G: "using a single, strong VLM can
-achieve performance comparable to a cascade of smaller, lightweight models". That
-cuts the stage from ~16h to ~2.5h wall-clock at an expected cost of ~1 point.
-
-Two departures from src/Image_to_Text/Qwen2VL_ScienceQA.py, both deliberate:
-  * max_new_tokens 384, not 32768. The upstream value makes every image pay for a
-    32k-token generation budget; the paper's own throughput figure (Appendix F,
-    "60 tokens per second, one image every 4 seconds") implies ~240 tokens.
-  * sharded by array task with an atomic write, so N array tasks cannot half-write
-    the same file. Upstream relies only on "skip if .txt exists", which races.
+Qwen2-VL-7B alone instead of the paper's BLIP-2 -> LLaVA -> Qwen2-VL cascade, which
+Appendix G sanctions: ~16h down to ~2.5h for an expected ~1 point. Two departures
+from src/Image_to_Text/Qwen2VL_ScienceQA.py: max_new_tokens 384 rather than 32768,
+and sharded with an atomic write so array tasks cannot half-write the same file.
 
 Usage:
     python repro/caption.py --shard-id 0 --num-shards 4 --splits train test
@@ -77,11 +70,9 @@ def main():
         return
 
     processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)
-    # torch_dtype=, not the dtype= that replaces it: dtype= only arrives in
-    # transformers 4.56, and setup.sh holds transformers below 4.47 to match the
-    # pinned vLLM. On 4.56+ this warns ("`torch_dtype` is deprecated!") and works;
-    # on 4.46 dtype= would be swallowed as an unknown kwarg and the model would load
-    # in fp32 - a silent 2x memory hit, so the deprecated spelling is the safe one.
+    # torch_dtype=, not its replacement dtype=: dtype= only arrives in transformers
+    # 4.56, and setup.sh pins well below that to match vLLM. Older releases swallow
+    # it as an unknown kwarg and load in fp32 - a silent 2x memory hit.
     model = AutoModelForImageTextToText.from_pretrained(
         args.model, torch_dtype=torch.bfloat16, trust_remote_code=True
     ).to("cuda")

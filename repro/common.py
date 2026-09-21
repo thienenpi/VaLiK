@@ -1,12 +1,7 @@
 """Shared helpers for the VaLiK ScienceQA reproduction.
 
-Everything here is read-only w.r.t. the upstream repo: the original scripts under src/
-are left untouched so a diff against Wings-Of-Disaster/VaLiK stays clean.
-
-Category definitions follow the ScienceQA convention used by paper Table 3:
-  subject  NAT / SOC / LAN
-  context  TXT (hint, no image) / IMG (has image) / NO (neither)
-  grade    G1-6 / G7-12
+The upstream scripts under src/ are left untouched. Categories follow paper Table 3:
+subject NAT/SOC/LAN, context TXT (hint) / IMG (image) / NO, grade G1-6 / G7-12.
 """
 
 import json
@@ -47,14 +42,9 @@ def load_splits():
 
 
 def load_sqa_captions():
-    """ScienceQA ships its own generated captions; the paper's no-KG baseline row
-    (Table 3, 'Qwen2.5-7B') scores 65.79 on IMG, far above chance, so the text-only
-    baseline must be fed *some* description. Using ScienceQA's own captions keeps
-    the baseline honest - feeding it our Qwen2-VL captions would inflate it and
-    shrink VaLiK's reported gain.
-
-    Upstream ships this at data/captions.json - one level ABOVE data/scienceqa/,
-    where problems.json and pid_splits.json live. Both locations are checked.
+    """ScienceQA's own captions, used for the no-KG baseline so it is not inflated
+    by our Qwen2-VL ones. Upstream puts the file one level above problems.json, so
+    both locations are checked.
     """
     for path in (os.path.join(SQA_DATA, "captions.json"),
                  os.path.join(SQA_ROOT, "captions.json")):
@@ -92,11 +82,8 @@ def read_caption(pid, split, suffix=".txt"):
 
 
 def limited_pids(pid_splits, split, limit=0):
-    """First `limit` pids of a split (0 = all).
-
-    Every stage slices the *same* prefix of pid_splits.json, so a smoke run
-    captions, prunes, builds and evaluates one consistent subset instead of four
-    unrelated ones.
+    """First `limit` pids of a split (0 = all); every stage slices the same prefix,
+    so a smoke run stays one consistent subset.
     """
     pids = pid_splits.get(split, [])
     return pids[:limit] if limit else pids
@@ -121,8 +108,7 @@ def categorize(problem):
     grade_n = int(re.sub(r"\D", "", problem.get("grade", "grade1")) or 1)
     return {
         "subject": SUBJECT_MAP.get(problem.get("subject", ""), "NAT"),
-        # IMG takes precedence: Table 3 counts a question with an image as IMG even
-        # when it also carries a hint.
+        # IMG wins over TXT: Table 3 counts any question with an image as IMG.
         "context": "IMG" if problem.get("image") else ("TXT" if problem.get("hint") else "NO"),
         "grade": "G1-6" if grade_n <= 6 else "G7-12",
     }
@@ -149,10 +135,8 @@ def format_question(problem, caption=None):
 
 
 def problem_to_kb_text(problem):
-    """One knowledge-base document per training problem.
-
-    Mirrors src/Original_Text_Compilation/Get_Text_ScienceQA.py, which concatenates
-    question / answer / hint / lecture / solution for the train split only.
+    """One KB document per training problem, mirroring
+    src/Original_Text_Compilation/Get_Text_ScienceQA.py.
     """
     choices = problem["choices"]
     answer = choices[problem["answer"]]
@@ -175,10 +159,8 @@ _LEADING = re.compile(r"^\s*\(?\s*([A-E])\s*[\)\.\:,]?\s*(?:$|\s)")
 
 
 def parse_choice(text, n_choices):
-    """Extract the predicted option index, or None when nothing parses.
-
-    Returning None (instead of guessing 0) keeps the parse-failure rate visible;
-    a run with >5% unparsed answers means the prompt is wrong, not the KG.
+    """Predicted option index, or None when nothing parses - never a guess, so the
+    parse-failure rate stays visible.
     """
     if not text:
         return None

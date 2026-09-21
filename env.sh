@@ -1,17 +1,11 @@
 #!/bin/bash
 # Shared environment for every VaLiK reproduction job. Sourced, never submitted.
 #
-# Everything the pipeline touches has to live under /media/lhbac29, so this also
-# redirects the caches that otherwise land in $HOME without asking:
-#   HF_HOME          ~53 GB of weights (Qwen2-VL-7B, Qwen2.5-32B-AWQ, Qwen2.5-7B,
-#                    CLIP-ViT-L/14, nomic-embed)
-#   VLLM_CACHE_ROOT  vLLM's torch.compile artefacts, a few GB per server start
-#   TRITON_CACHE_DIR Triton kernel cache, written on every vLLM launch
-#   TMPDIR           LightRAG and vLLM both spill large temporaries here
+# Caches are redirected under $DATA_ROOT (~53 GB of weights, plus vLLM/Triton
+# artefacts and large temporaries) instead of filling up $HOME.
 
 export DATA_ROOT="${DATA_ROOT:-/media/lhbac29}"
-# Every caller cds to the repo root before sourcing this, so $PWD is the right
-# fallback outside SLURM - and it keeps working if the repo is ever moved.
+# Callers cd to the repo root first, so $PWD is the right fallback outside SLURM.
 export VALIK_ROOT="${SLURM_SUBMIT_DIR:-$PWD}"
 
 export HF_HOME="$DATA_ROOT/hf"
@@ -26,14 +20,13 @@ if [ ! -d "$DATA_ROOT" ]; then
 fi
 mkdir -p "$HF_HOME" "$VLLM_CACHE_ROOT" "$TRITON_CACHE_DIR" "$TMPDIR" "$VALIK_ROOT/logs"
 
-# LightRAG is vendored, not pip-installed: src/LightRAG/lightrag is imported directly
-# so the pinned reference version the authors shipped stays in control.
+# LightRAG is vendored, not pip-installed: the authors' pinned copy under
+# src/LightRAG is imported directly.
 export PYTHONPATH="$VALIK_ROOT/src/LightRAG${PYTHONPATH:+:$PYTHONPATH}"
 export TOKENIZERS_PARALLELISM=false
 
-# Models. Qwen2.5-32B-Instruct-AWQ is ~19 GB, so one 80 GB card holds it with room
-# for the KV cache and the 137M embedding model alongside. If that repo 404s, the
-# GPTQ build (Qwen/Qwen2.5-32B-Instruct-GPTQ-Int4) is the drop-in alternative.
+# Qwen2.5-32B-AWQ is ~19 GB: one 80 GB card holds it plus the KV cache and the
+# embedding model. If that repo 404s, Qwen/Qwen2.5-32B-Instruct-GPTQ-Int4 drops in.
 export VLM_MODEL="${VLM_MODEL:-Qwen/Qwen2-VL-7B-Instruct}"
 export KG_MODEL="${KG_MODEL:-Qwen/Qwen2.5-32B-Instruct-AWQ}"
 export QA_MODEL="${QA_MODEL:-Qwen/Qwen2.5-7B-Instruct}"
@@ -43,30 +36,21 @@ export CLIP_MODEL="${CLIP_MODEL:-openai/clip-vit-large-patch14}"
 # Paper Sec 4.1: tau = 0.20 for ScienceQA.
 export TAU="${TAU:-0.20}"
 
-# Nodes the GPU stages must not land on, as a comma-separated list for sbatch.
+# Nodes the GPU stages must not land on (comma-separated, for sbatch --exclude).
 #
-# gpu02 only. It has the newest driver in the pool (555.42.02); gpu01 is 525.147.05
-# and gpu04 is 535.216.03, and gpu01 is where every caption and prune shard died with
-# "The NVIDIA driver on your system is too old (found version 12000)". Keeping the
-# installed stack and running one node is the cheap fix - the alternative, getting
-# gpu01 and gpu04 back, means reinstalling on an older CUDA 12.1 stack (setup.sh).
-#
-# The cost is concurrency: every stage here is sized for two concurrent tasks (two
-# caption shards, two prune shards, two graphs, evals throttled %2). On one node they
-# queue behind each other unless gpu02 has a second card, so expect roughly double
-# the wall-clock in submit_all.sh's estimates.
+# gpu02 only: it is the only driver new enough for the CUDA 12.4 stack setup.sh
+# installs. The cost is concurrency - the stages are sized for two concurrent tasks,
+# so on one node expect roughly double submit_all.sh's wall-clock estimates. To use
+# the whole pool, reinstall on the CUDA 12.1 stack (setup.sh) and clear this.
 export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu01,gpu03,gpu04}"
 
-# Fail a GPU stage before it downloads 15 GB of weights, not after.
-#
-# The pinned stack should make this never fire; it is here for when it does. A driver
-# torch cannot use either raises on the first CUDA call - caption paid for a 20 min
-# weight download before finding out - or, worse, quietly reports no device and the
-# stage runs on CPU, which is how prune "finished" in 7 minutes having written
-# nothing. torch.cuda.is_available() catches both in about a second.
+# Fail a GPU stage before it downloads 15 GB of weights, not after. A driver torch
+# cannot use either raises on the first CUDA call or, worse, reports no device and
+# lets the stage run on CPU and "finish" having written nothing.
 require_cuda() {
     python - "$@" <<'PY'
 import os
+import subprocess
 import sys
 
 import torch
@@ -74,6 +58,23 @@ import torch
 stage = sys.argv[1] if len(sys.argv) > 1 else "this stage"
 node = os.environ.get("SLURMD_NODENAME") or os.uname().nodename
 built = torch.version.cuda or "cpu-only build"
+
+
+def driver_cuda():
+    """The CUDA version this node's driver supports, per nvidia-smi, or None."""
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+            capture_output=True, text=True, timeout=30, check=True,
+        ).stdout.split()[0]
+    except Exception:
+        return None
+    # driver -> CUDA is a table, not arithmetic; only this pool's majors are listed.
+    major = int(out.split(".")[0])
+    for floor, cuda in ((580, "13.0"), (555, "12.5"), (535, "12.2"), (525, "12.0")):
+        if major >= floor:
+            return f"{cuda} (driver {out})"
+    return f"< 12.0 (driver {out})"
 
 try:
     ok = torch.cuda.is_available()
@@ -86,15 +87,21 @@ if ok:
           f"torch {torch.__version__} (built for CUDA {built})", flush=True)
     sys.exit(0)
 
+have = driver_cuda()
+excl = ','.join(dict.fromkeys(filter(
+    None, os.environ.get('VALIK_EXCLUDE', '').split(',') + [node])))
+
 print(
     f"FATAL: {stage} needs a GPU and torch cannot use one on {node}.\n"
     f"       torch {torch.__version__}, built for CUDA {built}.\n"
+    f"       this node's driver supports CUDA {have or 'unknown - no nvidia-smi'}.\n"
     f"       {err or 'torch.cuda.is_available() returned False.'}\n"
-    "       CUDA 12.x wheels need driver >= 525.60.13; compare `nvidia-smi` above.\n"
-    "       If this node's driver is simply older than the rest, skip it:\n"
-    f"         VALIK_EXCLUDE={','.join(dict.fromkeys(filter(None, os.environ.get('VALIK_EXCLUDE', '').split(',') + [node])))} bash submit_all.sh ...\n"
-    "       If they are all like this, lower the vLLM pin in setup.sh - it is what\n"
-    "       decides which CUDA build of torch gets installed.\n"
+    "       A node runs this torch only if its driver is at least as new as the CUDA\n"
+    "       it was built for. If this node is simply older than the rest, skip it:\n"
+    f"         VALIK_EXCLUDE={excl} bash submit_all.sh ...\n"
+    "       If no node is new enough - gpu02, the newest, is CUDA 12.5 - then torch\n"
+    "       itself is too new. Lower the vLLM pin, which is what drags torch in:\n"
+    '         VALIK_VLLM="vllm==0.7.3" bash setup.sh   (torch 2.5.1, CUDA 12.4)\n'
     "       Failing here so afterok stops the chain instead of producing nothing.",
     file=sys.stderr, flush=True,
 )
@@ -102,14 +109,8 @@ sys.exit(1)
 PY
 }
 
-# Per-request logging: ask the installed vLLM which spelling it takes.
-#
-# Old builds log every request and take --disable-log-requests to stop; vLLM dropped
-# that flag once request logging became opt-in behind --enable-log-requests, and
-# argparse rejects an unknown flag outright - which is what killed every kg and eval
-# job with "vllm: error: unrecognized arguments: --disable-log-requests" before the
-# server ever loaded a model. Probing costs one `vllm serve --help` per job and keeps
-# the pipeline working on both sides of that change, with no version pin to chase.
+# Per-request logging: old vLLM needs --disable-log-requests, newer builds dropped
+# the flag and argparse rejects it outright, so ask --help which spelling it takes.
 vllm_quiet_flag() {
     if [ -z "${VLLM_QUIET_FLAG+x}" ]; then
         local help
@@ -151,10 +152,8 @@ start_vllm() {
             return 0
         fi
         kill -0 $VLLM_PID 2>/dev/null || {
-            # Show the reason here rather than only naming the file: a failed launch
-            # is usually one line (a rejected flag, an OOM, a 404 model repo) and
-            # having it in the job log is the difference between a 5-second and a
-            # 10-minute diagnosis.
+            # The reason is usually one line (rejected flag, OOM, 404 model repo),
+            # so put it in the job log rather than only naming the file.
             echo "ERROR: vLLM died during startup; last 20 lines of" \
                  "logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log:" >&2
             tail -n 20 "$VALIK_ROOT/logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log" >&2

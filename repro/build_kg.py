@@ -1,27 +1,15 @@
 """Stage 3 - MMKG construction (paper Sec 3.3, Algorithm 1).
 
-Serves the graph-construction LLM through vLLM instead of Ollama. Same models, but
-Ollama has no continuous batching, which is why the paper's Appendix F throughput
-(196k tokens/hour) is an order of magnitude below what one A100 can actually do.
-LightRAG already ships an OpenAI-compatible backend (lightrag/llm/openai.py), so
-vLLM drops in with no change to the library.
+Serves the graph LLM through vLLM rather than Ollama - LightRAG's OpenAI backend
+drops straight in, and continuous batching is what makes the stage fit in a day.
 
-Deviation from paper Sec 4.1: Qwen2.5-32B-Instruct-AWQ builds the graph, not
-DeepSeek-R1-70B. Grounds:
-  * the repo README (line 84) recommends Qwen2.5 "for its balance of efficiency
-    and effectiveness";
-  * the paper itself reports R1 behaving anomalously (Sec 4.2: "its reasoning
-    process may introduce complex information that interferes with its judgment") -
-    LightRAG parses entities off delimiters, and R1's <think> block corrupts that;
-  * Appendix D measures only a 1-5% spread across retrieval model sizes.
-We strip <think> blocks anyway so an R1 run stays possible via --llm-model.
+Qwen2.5-32B-Instruct-AWQ builds the graph instead of the paper's DeepSeek-R1-70B:
+the repo README recommends Qwen2.5, the paper flags R1 as anomalous (Sec 4.2), and
+R1's <think> block corrupts LightRAG's delimiter-based entity parsing. <think> is
+stripped anyway, so an R1 run stays possible via --llm-model.
 
-Resumability: upstream src/LightRAG/lightrag_ollama_demo.py calls
-rag.insert(one_huge_string). LightRAG checkpoints at *document* granularity
-(lightrag.py:373-390 filters on doc_status, and _insert_done() runs after each
-document), so a single document means a preempted job loses everything. We insert a
-list - one document per training problem, one per image description - which makes
---requeue safe and costs nothing.
+Documents are inserted as a list, not one huge string as upstream does: LightRAG
+checkpoints per document, so --requeue resumes instead of losing the whole run.
 
 Usage:
     python repro/build_kg.py --mode text_image --working-dir outputs/kg_text_image \
@@ -102,9 +90,8 @@ def main():
     from lightrag.utils import EmbeddingFunc
 
     async def llm_model_func(prompt, system_prompt=None, history_messages=None, **kwargs):
-        # LightRAG's own openai_complete() sets response_format="json" (a bare
-        # string) for keyword extraction; the OpenAI schema - and therefore vLLM -
-        # wants {"type": "json_object"}, and rejects the string with a 400.
+        # LightRAG passes response_format="json" as a bare string for keyword
+        # extraction; vLLM wants {"type": "json_object"} and 400s on the string.
         if kwargs.pop("keyword_extraction", False):
             kwargs["response_format"] = {"type": "json_object"}
         model_name = kwargs["hashing_kv"].global_config["llm_model_name"]
@@ -151,8 +138,7 @@ def main():
         flush=True,
     )
 
-    # Documents already present in doc_status are skipped inside ainsert, so a
-    # requeued job picks up where the previous attempt stopped.
+    # Documents already in doc_status are skipped, so a requeued job resumes.
     rag.insert(docs)
 
     total = sum(
