@@ -48,13 +48,17 @@ echo "=== constraints: $(tr '\n' ' ' < "$CONSTRAINTS")"
 # use (clip-interrogator pins an old open_clip and a conflicting torch; CLIP is
 # reached through transformers instead).
 #
+# opencv is capped at <4.12 because 4.12+ declares numpy>=2, which fights the
+# numpy<2 pin below. Nothing in repro/ imports cv2 - only the upstream
+# src/Image_to_Text scripts do - so this is just keeping pip's resolver quiet.
+#
 # transformers is bounded both ways: 4.48.2 is what vLLM 0.7.3 requires (and >=4.46
 # is where qwen2_vl maps to AutoModelForImageTextToText, which caption.py uses), and
 # the ceiling is because vLLM calls transformers internals. An older vLLM needs a
 # lower ceiling - see $VALIK_TRANSFORMERS above.
 python -m pip install -c "$CONSTRAINTS" \
     "${VALIK_TRANSFORMERS:-transformers>=4.48.2,<4.50}" accelerate qwen-vl-utils einops \
-    nltk pillow opencv-python \
+    nltk pillow "opencv-python<4.12" \
     nano-vectordb networkx graspologic tiktoken tenacity xxhash \
     openai aiohttp aiofiles pydantic python-dotenv tqdm
 
