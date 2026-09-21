@@ -109,6 +109,43 @@ sys.exit(1)
 PY
 }
 
+enable_hf_transfer() {
+    if [ -z "${VALIK_HF_TRANSFER_CHECKED+x}" ]; then
+        if python -c "import hf_transfer" 2>/dev/null; then
+            export HF_HUB_ENABLE_HF_TRANSFER=1
+        else
+            export HF_HUB_ENABLE_HF_TRANSFER=0
+        fi
+        export VALIK_HF_TRANSFER_CHECKED=1
+    fi
+}
+
+prefetch_model() {
+    local model="$1"
+    [ -d "$model" ] && return 0
+    enable_hf_transfer
+    python - "$model" <<'PY'
+import sys
+import time
+
+from huggingface_hub import HfApi, snapshot_download
+
+model = sys.argv[1]
+
+ignore = None
+try:
+    files = HfApi().list_repo_files(model)
+    if any(f.endswith(".safetensors") for f in files):
+        ignore = ["*.bin", "*.pt", "*.pth", "*.msgpack", "*.h5"]
+except Exception as e:
+    print(f"    could not list {model} ({e}); fetching every file", flush=True)
+
+t0 = time.time()
+path = snapshot_download(model, ignore_patterns=ignore)
+print(f"=== weights ready: {model} ({time.time() - t0:.0f} s)\n    {path}", flush=True)
+PY
+}
+
 # Per-request logging: old vLLM needs --disable-log-requests, newer builds dropped
 # the flag and argparse rejects it outright, so ask --help which spelling it takes.
 vllm_quiet_flag() {
@@ -138,6 +175,12 @@ start_vllm() {
     local flag; flag="$(vllm_quiet_flag)"
     [ -n "$flag" ] && quiet=("$flag")
 
+    echo "=== fetching weights if the cache is cold: $model"
+    prefetch_model "$model" || {
+        echo "ERROR: could not fetch $model into HF_HOME=$HF_HOME" >&2
+        return 1
+    }
+
     echo "=== starting vLLM: $model on port $port ${quiet[*]}"
     vllm serve "$model" --port "$port" --host 127.0.0.1 \
         --gpu-memory-utilization 0.85 --max-model-len 32768 \
@@ -146,7 +189,10 @@ start_vllm() {
     VLLM_PID=$!
     trap 'kill $VLLM_PID 2>/dev/null' EXIT
 
-    for _ in $(seq 1 180); do
+    local log="$VALIK_ROOT/logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log"
+    local wait_min="${VALIK_VLLM_WAIT_MIN:-45}"
+    local i
+    for i in $(seq 1 $((wait_min * 6))); do
         if curl -sf "http://127.0.0.1:${port}/health" > /dev/null; then
             echo "=== vLLM ready after $SECONDS s"
             return 0
@@ -156,11 +202,17 @@ start_vllm() {
             # so put it in the job log rather than only naming the file.
             echo "ERROR: vLLM died during startup; last 20 lines of" \
                  "logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log:" >&2
-            tail -n 20 "$VALIK_ROOT/logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log" >&2
+            tail -n 20 "$log" >&2
             return 1
         }
+        if [ $((i % 30)) -eq 0 ]; then
+            echo "    still loading after $((i / 6)) of $wait_min min: $(tail -n 1 "$log")"
+        fi
         sleep 10
     done
-    echo "ERROR: vLLM did not become healthy within 30 min" >&2
+    echo "ERROR: vLLM did not become healthy within $wait_min min;" \
+         "raise \$VALIK_VLLM_WAIT_MIN if the load is just slow. Last 20 lines of" \
+         "logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log:" >&2
+    tail -n 20 "$log" >&2
     return 1
 }

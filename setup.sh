@@ -1,6 +1,6 @@
 #!/bin/bash
-# Run once on the login node: installs into the python310 conda env and fetches
-# ScienceQA. Model weights are pulled by the first caption shard, not here.
+# Run once on the login node: installs into the python310 conda env, fetches
+# ScienceQA, and prefetches the model weights (~53 GB) so no GPU job has to.
 #
 # Usage: bash setup.sh
 
@@ -60,7 +60,7 @@ python -m pip install -c "$CONSTRAINTS" \
     "${VALIK_TRANSFORMERS:-transformers>=4.48.2,<4.50}" accelerate qwen-vl-utils einops \
     nltk pillow "opencv-python<4.12" \
     nano-vectordb networkx graspologic tiktoken tenacity xxhash \
-    openai aiohttp aiofiles pydantic python-dotenv tqdm
+    openai aiohttp aiofiles pydantic python-dotenv tqdm hf_transfer
 
 # numpy 1.x, last: the shared python310 env is full of wheels built against the 1.x
 # ABI (pyarrow, pandas, scipy), which die under numpy 2 with "_ARRAY_API not found".
@@ -126,6 +126,17 @@ done
 cd ..
 
 python repro/check_data.py
+
+# ---------------------------------------------------------------- model weights
+if [ -n "${VALIK_SKIP_PREFETCH:-}" ]; then
+    echo "=== skipping weight prefetch (VALIK_SKIP_PREFETCH set)"
+else
+    echo "=== prefetching weights into $HF_HOME (~53 GB, first run is slow)"
+    for model in "$VLM_MODEL" "$KG_MODEL" "$QA_MODEL" "$EMBED_MODEL" "$CLIP_MODEL"; do
+        prefetch_model "$model"
+    done
+    du -sh "$HF_HOME"
+fi
 
 echo
 echo "Setup done. Next: bash submit_all.sh --limit 1000"
