@@ -42,7 +42,7 @@ export TAU="${TAU:-0.20}"
 # installs. The cost is concurrency - the stages are sized for two concurrent tasks,
 # so on one node expect roughly double submit_all.sh's wall-clock estimates. To use
 # the whole pool, reinstall on the CUDA 12.1 stack (setup.sh) and clear this.
-export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu01,gpu03,gpu04}"
+export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu01}"
 
 # Fail a GPU stage before it downloads 15 GB of weights, not after. A driver torch
 # cannot use either raises on the first CUDA call or, worse, reports no device and
