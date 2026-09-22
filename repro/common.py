@@ -202,3 +202,17 @@ def format_table(cols, title=""):
     head = " ".join(f"{k:>8}" for k in order)
     body = " ".join(f"{cols[k]:>8.2f}" for k in order)
     return f"{title}\n{head}\n{body}"
+
+
+async def hf_embed(texts, tokenizer, model):
+    """Replaces lightrag.llm.hf.hf_embed, which passes input_ids alone: nomic-bert
+    dereferences the missing attention_mask, and the mean would cover PAD anyway."""
+    import torch
+
+    device = next(model.parameters()).device
+    batch = tokenizer(texts, return_tensors="pt", padding=True, truncation=True).to(device)
+    ids, attn = batch["input_ids"], batch["attention_mask"]
+    with torch.no_grad():
+        hidden = model(ids, attention_mask=attn).last_hidden_state
+    mask = attn.unsqueeze(-1).to(hidden.dtype)
+    return (hidden * mask).sum(1).div(mask.sum(1).clamp(min=1e-9)).float().cpu().numpy()

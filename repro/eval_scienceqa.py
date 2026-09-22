@@ -33,6 +33,7 @@ from common import (  # noqa: E402
     categorize,
     format_question,
     format_table,
+    hf_embed,
     load_problems,
     load_sqa_captions,
     load_splits,
@@ -126,7 +127,6 @@ async def main():
         from transformers import AutoModel, AutoTokenizer
 
         from lightrag import LightRAG, QueryParam
-        from lightrag.llm.hf import hf_embed
         from lightrag.llm.openai import openai_complete_if_cache
         from lightrag.utils import EmbeddingFunc
 

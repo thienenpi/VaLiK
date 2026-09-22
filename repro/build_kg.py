@@ -26,6 +26,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.environ.get("VALIK_ROOT", ".."), "src", "LightRAG"))
 
 from common import (  # noqa: E402
+    hf_embed,
     limited_pids,
     load_problems,
     load_splits,
@@ -85,7 +86,7 @@ def main():
     from transformers import AutoModel, AutoTokenizer
 
     from lightrag import LightRAG
-    from lightrag.llm.hf import hf_embed
+    from lightrag.lightrag import always_get_an_event_loop
     from lightrag.llm.openai import openai_complete_if_cache
     from lightrag.utils import EmbeddingFunc
 
@@ -140,6 +141,18 @@ def main():
 
     # Documents already in doc_status are skipped, so a requeued job resumes.
     rag.insert(docs)
+
+    # ainsert logs a failed document and moves on, so without this the stage exits 0
+    # having built nothing and .build_done makes the next run skip it.
+    counts = always_get_an_event_loop().run_until_complete(
+        rag.doc_status.get_status_counts()
+    )
+    done, failed = counts.get("processed", 0), counts.get("failed", 0)
+    print(f"doc_status: {counts}", flush=True)
+    if failed:
+        print(f"FATAL: {failed} of {done + failed} documents failed to insert; see the "
+              "ERROR:lightrag lines above for the first cause.", flush=True)
+        sys.exit(1)
 
     total = sum(
         os.path.getsize(os.path.join(dp, f))
