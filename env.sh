@@ -36,6 +36,11 @@ export CLIP_MODEL="${CLIP_MODEL:-openai/clip-vit-large-patch14}"
 # Paper Sec 4.1: tau = 0.20 for ScienceQA.
 export TAU="${TAU:-0.20}"
 
+# 32768 leaves only 29568 tokens of KV cache on a 40 GB card, and vLLM refuses to
+# start. Build chunks are 1200 tokens and eval's context budget is 12000, so 16384 is
+# ample; an 80 GB card can go back to 32768.
+export VALIK_MAX_MODEL_LEN="${VALIK_MAX_MODEL_LEN:-16384}"
+
 # Nodes the GPU stages must not land on (comma-separated, for sbatch --exclude).
 #
 # gpu02 only, and the reason is the GPU, not the driver: gpu02 is an A100 (compute
@@ -47,7 +52,7 @@ export TAU="${TAU:-0.20}"
 # gpu01 is out on driver grounds; gpu03 has never been measured, so it stays out with
 # it. The cost is concurrency - the stages are sized for two concurrent tasks, so on
 # one node expect roughly double submit_all.sh's wall-clock estimates.
-export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu01,gpu03,gpu04}"
+export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu03,gpu04}"
 
 # Fail a GPU stage before it downloads 15 GB of weights, not after. A driver torch
 # cannot use either raises on the first CUDA call or, worse, reports no device and
@@ -253,7 +258,7 @@ start_vllm() {
 
     echo "=== starting vLLM: $model on port $port ${quiet[*]}"
     vllm serve "$model" --port "$port" --host 127.0.0.1 \
-        --gpu-memory-utilization 0.85 --max-model-len 32768 \
+        --gpu-memory-utilization 0.85 --max-model-len "$VALIK_MAX_MODEL_LEN" \
         "${quiet[@]}" "$@" \
         > "$VALIK_ROOT/logs/vllm-${jobid}-${SLURM_ARRAY_TASK_ID:-0}.log" 2>&1 &
     VLLM_PID=$!

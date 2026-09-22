@@ -68,6 +68,7 @@ python repro/build_kg.py \
     --split train \
     --caption-suffix "$SUFFIX" \
     --limit "$LIMIT" \
+    --max-token-size "$VALIK_MAX_MODEL_LEN" \
     --max-async 32 || exit 1
 
 touch "${WORKDIR}/.build_done"
