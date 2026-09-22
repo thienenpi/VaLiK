@@ -1,0 +1,48 @@
+Job 77086 on gpu01; mode=text_image; captions=.pruned.txt; limit=1000; started Tue Sep 22 05:41:22 AM UTC 2026
+Tue Sep 22 05:41:22 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:47:00.0 Off |                    0 |
+| N/A   28C    P0    54W / 400W |      0MiB / 40960MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+=== cuda ok on gpu01: NVIDIA A100-SXM4-40GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+=== fetching weights if the cache is cold: Qwen/Qwen2.5-32B-Instruct-AWQ
+=== weights ready: Qwen/Qwen2.5-32B-Instruct-AWQ (0 s)
+    /media/lhbac29/hf/hub/models--Qwen--Qwen2.5-32B-Instruct-AWQ/snapshots/5c7cb76a268fc6cfbb9c4777eb24ba6e27f9ee6c
+=== starting vLLM: Qwen/Qwen2.5-32B-Instruct-AWQ on port 37099 --disable-log-requests
+    still loading after 5 of 45 min: Loading safetensors checkpoint shards:  60% Completed | 3/5 [03:27<02:22, 71.49s/it]
+ERROR: vLLM died during startup; last 20 lines of logs/vllm-77086-1.log:
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/cli/main.py", line 73, in main
+    args.dispatch_function(args)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/cli/serve.py", line 34, in cmd
+    uvloop.run(run_server(args))
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/uvloop/__init__.py", line 69, in run
+    return loop.run_until_complete(wrapper())
+  File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/uvloop/__init__.py", line 48, in wrapper
+    return await main
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py", line 947, in run_server
+    async with build_async_engine_client(args) as engine_client:
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/contextlib.py", line 199, in __aenter__
+    return await anext(self.gen)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py", line 139, in build_async_engine_client
+    async with build_async_engine_client_from_engine_args(
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/contextlib.py", line 199, in __aenter__
+    return await anext(self.gen)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/api_server.py", line 233, in build_async_engine_client_from_engine_args
+    raise RuntimeError(
+RuntimeError: Engine process failed to start. See stack trace for the root cause.
