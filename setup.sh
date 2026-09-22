@@ -60,7 +60,7 @@ python -m pip install -c "$CONSTRAINTS" \
     "${VALIK_TRANSFORMERS:-transformers>=4.48.2,<4.50}" accelerate qwen-vl-utils einops \
     nltk pillow "opencv-python<4.12" \
     nano-vectordb networkx graspologic tiktoken tenacity xxhash \
-    openai aiohttp aiofiles pydantic python-dotenv tqdm hf_transfer
+    openai aiohttp aiofiles pydantic python-dotenv tqdm hf_transfer pipmaster
 
 # numpy 1.x, last: the shared python310 env is full of wheels built against the 1.x
 # ABI (pyarrow, pandas, scipy), which die under numpy 2 with "_ARRAY_API not found".
