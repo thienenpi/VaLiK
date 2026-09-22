@@ -1,0 +1,47 @@
+Job 77033 on gpu04; mode=image_only; captions=.pruned.txt; limit=1000; started Thứ ba, 22 Tháng 9 năm 2026 00:24:15 +07
+Tue Sep 22 00:24:15 2026       
++---------------------------------------------------------------------------------------+
+| NVIDIA-SMI 535.216.03             Driver Version: 535.216.03   CUDA Version: 12.2     |
+|-----------------------------------------+----------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |         Memory-Usage | GPU-Util  Compute M. |
+|                                         |                      |               MIG M. |
+|=========================================+======================+======================|
+|   0  Tesla V100-DGXS-32GB           On  | 00000000:07:00.0 Off |                    0 |
+| N/A   45C    P0              38W / 300W |      0MiB / 32768MiB |      0%      Default |
+|                                         |                      |                  N/A |
++-----------------------------------------+----------------------+----------------------+
+                                                                                         
++---------------------------------------------------------------------------------------+
+| Processes:                                                                            |
+|  GPU   GI   CI        PID   Type   Process name                            GPU Memory |
+|        ID   ID                                                             Usage      |
+|=======================================================================================|
+|  No running processes found                                                           |
++---------------------------------------------------------------------------------------+
+=== cuda ok on gpu04: Tesla V100-DGXS-32GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+=== fetching weights if the cache is cold: Qwen/Qwen2.5-32B-Instruct-AWQ
+=== weights ready: Qwen/Qwen2.5-32B-Instruct-AWQ (0 s)
+    /media/lhbac29/hf/hub/models--Qwen--Qwen2.5-32B-Instruct-AWQ/snapshots/5c7cb76a268fc6cfbb9c4777eb24ba6e27f9ee6c
+=== starting vLLM: Qwen/Qwen2.5-32B-Instruct-AWQ on port 37033 --disable-log-requests
+ERROR: vLLM died during startup; last 20 lines of logs/vllm-77033-0.log:
+Process SpawnProcess-1:
+Traceback (most recent call last):
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/engine/multiprocessing/engine.py", line 402, in run_mp_engine
+    raise e
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/engine/multiprocessing/engine.py", line 391, in run_mp_engine
+    engine = MQLLMEngine.from_engine_args(engine_args=engine_args,
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/engine/multiprocessing/engine.py", line 119, in from_engine_args
+    engine_config = engine_args.create_engine_config(usage_context)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/engine/arg_utils.py", line 1334, in create_engine_config
+    config = VllmConfig(
+  File "<string>", line 19, in __init__
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/config.py", line 3279, in __post_init__
+    self.quant_config = VllmConfig._get_quantization_config(
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/config.py", line 3228, in _get_quantization_config
+    raise ValueError(
+ValueError: The quantization method awq is not supported for the current GPU. Minimum capability: 75. Current capability: 70.
