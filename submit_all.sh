@@ -20,7 +20,7 @@
 set -euo pipefail
 cd "$(dirname "$0")" || exit 1
 
-# For $VALIK_EXCLUDE: nodes whose driver is too old for the installed torch.
+# For $VALIK_EXCLUDE: nodes whose GPU or driver cannot run the installed stack.
 source env.sh
 
 STAGES=(caption prune kg eval)
@@ -107,9 +107,9 @@ fi
 [ "$DRY" = 1 ] && echo "### DRY RUN - nothing will be submitted ###"
 echo "stages: ${SELECTED[*]}"
 if [ -n "${VALIK_EXCLUDE:-}" ]; then
-    echo "exclude: $VALIK_EXCLUDE  (driver too old for the installed torch)"
+    echo "exclude: $VALIK_EXCLUDE  (GPU too old for the vLLM stages, or driver too old for torch)"
 else
-    echo "exclude: none - every node must satisfy the installed torch"
+    echo "exclude: none - every node must satisfy torch AND vLLM's compute-capability floors"
 fi
 echo
 

@@ -25,7 +25,7 @@ mkdir -p "$HF_HOME" "$VLLM_CACHE_ROOT" "$TRITON_CACHE_DIR" "$TMPDIR" "$VALIK_ROO
 export PYTHONPATH="$VALIK_ROOT/src/LightRAG${PYTHONPATH:+:$PYTHONPATH}"
 export TOKENIZERS_PARALLELISM=false
 
-# Qwen2.5-32B-AWQ is ~19 GB: one 80 GB card holds it plus the KV cache and the
+# Qwen2.5-32B-AWQ is ~19 GB: gpu02's 40 GB A100 holds it plus the KV cache and the
 # embedding model. If that repo 404s, Qwen/Qwen2.5-32B-Instruct-GPTQ-Int4 drops in.
 export VLM_MODEL="${VLM_MODEL:-Qwen/Qwen2-VL-7B-Instruct}"
 export KG_MODEL="${KG_MODEL:-Qwen/Qwen2.5-32B-Instruct-AWQ}"
@@ -38,11 +38,16 @@ export TAU="${TAU:-0.20}"
 
 # Nodes the GPU stages must not land on (comma-separated, for sbatch --exclude).
 #
-# gpu02 only: it is the only driver new enough for the CUDA 12.4 stack setup.sh
-# installs. The cost is concurrency - the stages are sized for two concurrent tasks,
-# so on one node expect roughly double submit_all.sh's wall-clock estimates. To use
-# the whole pool, reinstall on the CUDA 12.1 stack (setup.sh) and clear this.
-export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu01}"
+# gpu02 only, and the reason is the GPU, not the driver: gpu02 is an A100 (compute
+# capability 8.0), gpu04 a Tesla V100-DGXS (7.0). vLLM's AWQ kernels need 7.5 and its
+# bfloat16 path needs 8.0, so neither vLLM stage - KG on Qwen2.5-32B-AWQ, eval on
+# bf16 Qwen2.5-7B - can start on a V100 at all:
+#   ValueError: The quantization method awq is not supported for the current GPU.
+#               Minimum capability: 75. Current capability: 70.
+# gpu01 is out on driver grounds; gpu03 has never been measured, so it stays out with
+# it. The cost is concurrency - the stages are sized for two concurrent tasks, so on
+# one node expect roughly double submit_all.sh's wall-clock estimates.
+export VALIK_EXCLUDE="${VALIK_EXCLUDE-gpu01,gpu03,gpu04}"
 
 # Fail a GPU stage before it downloads 15 GB of weights, not after. A driver torch
 # cannot use either raises on the first CUDA call or, worse, reports no device and
@@ -103,6 +108,69 @@ print(
     "       itself is too new. Lower the vLLM pin, which is what drags torch in:\n"
     '         VALIK_VLLM="vllm==0.7.3" bash setup.sh   (torch 2.5.1, CUDA 12.4)\n'
     "       Failing here so afterok stops the chain instead of producing nothing.",
+    file=sys.stderr, flush=True,
+)
+sys.exit(1)
+PY
+}
+
+# vLLM does check that its kernels can run on this GPU - but only after the weights
+# are fetched and an engine subprocess has spawned, so a scheduling mistake surfaces
+# as 70 lines of traceback many minutes in. Check the same floors here, in seconds,
+# and say which knob moves the job.
+require_gpu_for_model() {
+    python - "$1" <<'PY'
+import os
+import sys
+
+import torch
+
+model = sys.argv[1]
+node = os.environ.get("SLURMD_NODENAME") or os.uname().nodename
+major, minor = torch.cuda.get_device_capability()
+
+# vLLM's get_min_capability() per quantization method, plus the bfloat16 floor that
+# _check_if_gpu_supports_dtype() enforces for an unquantized bf16 checkpoint.
+FLOORS = {"awq": 75, "awq_marlin": 75, "gptq": 60, "gptq_marlin": 80,
+          "fp8": 89, "compressed-tensors": 75, "bitsandbytes": 75}
+
+
+def required():
+    """(floor, why) for this checkpoint, or (None, None) if we cannot tell."""
+    try:
+        from transformers import AutoConfig
+        cfg = AutoConfig.from_pretrained(model)
+    except Exception as e:
+        print(f"    note: cannot read config.json for {model} ({e});"
+              " skipping the capability preflight", flush=True)
+        return None, None
+    quant = getattr(cfg, "quantization_config", None) or {}
+    if not isinstance(quant, dict):
+        quant = quant.to_dict() if hasattr(quant, "to_dict") else {}
+    method = str(quant.get("quant_method", "")).lower()
+    if method:
+        # An unlisted method is one we have no floor for: let vLLM rule on it.
+        return FLOORS.get(method), f"the {method} kernels"
+    if str(getattr(cfg, "torch_dtype", "")).endswith("bfloat16"):
+        return 80, "its bfloat16 weights (--dtype half avoids this, at some fidelity)"
+    return 0, "this GPU"
+
+
+floor, why = required()
+if floor is None or major * 10 + minor >= floor:
+    sys.exit(0)
+
+excl = ','.join(dict.fromkeys(filter(
+    None, os.environ.get('VALIK_EXCLUDE', '').split(',') + [node])))
+
+print(
+    f"FATAL: {torch.cuda.get_device_name(0)} on {node} is compute capability "
+    f"{major}.{minor},\n"
+    f"       but {model} needs {floor // 10}.{floor % 10} for {why}.\n"
+    "       This node is the wrong shape for the stage, not merely a slow one, so\n"
+    "       keep the job off it rather than waiting on it:\n"
+    f"         VALIK_EXCLUDE={excl} bash submit_all.sh ...\n"
+    "       Failing here so afterok stops the chain before the weights download.",
     file=sys.stderr, flush=True,
 )
 sys.exit(1)
@@ -174,6 +242,8 @@ start_vllm() {
     local quiet=()
     local flag; flag="$(vllm_quiet_flag)"
     [ -n "$flag" ] && quiet=("$flag")
+
+    require_gpu_for_model "$model" || return 1
 
     echo "=== fetching weights if the cache is cold: $model"
     prefetch_model "$model" || {
