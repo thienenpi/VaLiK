@@ -52,6 +52,19 @@ if [ -f "${OUT}.json" ]; then
     exit 0
 fi
 
+WORKDIR="outputs/kg_${CFG}$( [ "$LIMIT" != "0" ] && echo "-n${LIMIT}" )"
+if [ "$CFG" != "nokg" ]; then
+    if [ ! -s "${WORKDIR}/graph_chunk_entity_relation.graphml" ]; then
+        echo "ERROR: no graph in ${WORKDIR} - run jobs/30_build_kg.slurm first" >&2
+        exit 1
+    fi
+    if [ ! -f "${WORKDIR}/.build_done" ]; then
+        echo "WARNING: ${WORKDIR}/.build_done is missing - this graph is a partial"
+        echo "         build (check the FATAL line in its kg-*.out log for how many"
+        echo "         documents failed). Accuracy below the paper may be that, not VaLiK."
+    fi
+fi
+
 require_cuda "the eval" || exit 1
 
 start_vllm "$QA_MODEL" || exit 1
@@ -64,11 +77,6 @@ if [ "$CFG" = "nokg" ]; then
         --split test --limit "$LIMIT" --concurrency 32 \
         --out "$OUT" || exit 1
 else
-    WORKDIR="outputs/kg_${CFG}$( [ "$LIMIT" != "0" ] && echo "-n${LIMIT}" )"
-    if [ ! -f "${WORKDIR}/.build_done" ]; then
-        echo "ERROR: ${WORKDIR} not built yet - run jobs/30_build_kg.slurm first" >&2
-        exit 1
-    fi
     # hybrid: paper Appendix D, local cues plus global knowledge.
     python repro/eval_scienceqa.py \
         --mode kg --working-dir "$WORKDIR" \
