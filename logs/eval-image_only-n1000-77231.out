@@ -1,0 +1,29 @@
+Job 77231 on gpu01; config=image_only; limit=1000; started Wed Sep 23 03:07:20 PM UTC 2026
+Wed Sep 23 15:07:20 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:47:00.0 Off |                    0 |
+| N/A   28C    P0    54W / 400W |      0MiB / 40960MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+=== cuda ok on gpu01: NVIDIA A100-SXM4-40GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+=== fetching weights if the cache is cold: Qwen/Qwen2.5-7B-Instruct
+=== weights ready: Qwen/Qwen2.5-7B-Instruct (0 s)
+    /media/lhbac29/hf/hub/models--Qwen--Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28
+=== starting vLLM: Qwen/Qwen2.5-7B-Instruct on port 37244 --disable-log-requests
+    still loading after 5 of 45 min: Loading safetensors checkpoint shards:  50% Completed | 2/4 [02:59<02:59, 89.60s/it]
+=== vLLM ready after 477 s
+ERROR: outputs/kg_image_only-n1000 not built yet - run jobs/30_build_kg.slurm first
