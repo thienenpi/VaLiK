@@ -69,7 +69,7 @@ python -m pip install -c "$CONSTRAINTS" "numpy<2"
 python -c "import nltk; nltk.download('punkt'); nltk.download('punkt_tab')"
 
 # Stop here if torch is built for a CUDA the pool cannot run, instead of finding out
-# four dead SLURM stages later. This checks the *build*; require_cuda re-checpipmasterks the
+# four dead SLURM stages later. This checks the *build*; require_cuda re-checks the
 # node at job start. $VALIK_POOL_CUDA = newest driver in the pool (gpu02, CUDA 12.5);
 # raise it when the cluster drivers are upgraded.
 VALIK_POOL_CUDA="${VALIK_POOL_CUDA:-12.5}" python - <<'PY' || exit 1

@@ -150,8 +150,9 @@ def main():
     done, failed = counts.get("processed", 0), counts.get("failed", 0)
     print(f"doc_status: {counts}", flush=True)
     if failed:
-        print(f"FATAL: {failed} of {done + failed} documents failed to insert; see the "
-              "ERROR:lightrag lines above for the first cause.", flush=True)
+        print(f"FATAL: {failed} of {done + failed} documents failed to insert; the first "
+              "cause is the earliest ERROR:lightrag line above. Rerunning retries only "
+              "the failed ones, so fix the cause and resubmit.", flush=True)
         sys.exit(1)
 
     total = sum(
