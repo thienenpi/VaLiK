@@ -36,6 +36,16 @@ from common import (  # noqa: E402
 
 THINK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
 
+# LightRAG defaults to a newsroom ontology (organization, person, geo, event,
+# category). ScienceQA is triangles and magnets: the LLM correctly finds nothing of
+# those types, LightRAG calls the document failed, and n1000 lost 282 of 950
+# extractions that way.
+ENTITY_TYPES = [
+    "organism", "body part", "substance", "material", "object", "device",
+    "structure", "process", "phenomenon", "property", "measurement",
+    "person", "place", "event", "concept",
+]
+
 
 def build_documents(mode, split, caption_suffix, limit=0):
     problems, pid_splits = load_problems(), load_splits()
@@ -80,6 +90,11 @@ def main():
     ap.add_argument("--caption-suffix", default=".pruned.txt")
     ap.add_argument("--limit", type=int, default=0,
                     help="first N train pids (0 = all); must match caption.py's --limit")
+    ap.add_argument("--entity-types", default=",".join(ENTITY_TYPES),
+                    help="comma-separated ontology handed to the extraction prompt")
+    ap.add_argument("--max-failed-frac", type=float, default=0.10,
+                    help="fraction of documents allowed to extract nothing before the "
+                         "build counts as broken; a dead LLM fails nearly all of them")
     args = ap.parse_args()
 
     import torch
@@ -122,6 +137,7 @@ def main():
             max_token_size=8192,
             func=lambda texts: hf_embed(texts, tokenizer, embed_model),
         ),
+        addon_params={"entity_types": [t.strip() for t in args.entity_types.split(",") if t.strip()]},
     )
 
     docs = build_documents(args.mode, args.split, args.caption_suffix, args.limit)
@@ -143,17 +159,25 @@ def main():
     rag.insert(docs)
 
     # ainsert logs a failed document and moves on, so without this the stage exits 0
-    # having built nothing and .build_done makes the next run skip it.
+    # having built nothing and .build_done makes the next run skip it. A few failures
+    # are not that: a caption with no entity in it is a legitimately empty extraction.
+    # Exiting non-zero over those would be worse than useless - submit_all.sh chains
+    # the stages with afterok, so eval would never start.
     counts = always_get_an_event_loop().run_until_complete(
         rag.doc_status.get_status_counts()
     )
     done, failed = counts.get("processed", 0), counts.get("failed", 0)
+    frac = failed / max(done + failed, 1)
     print(f"doc_status: {counts}", flush=True)
-    if failed:
-        print(f"FATAL: {failed} of {done + failed} documents failed to insert; the first "
+    if frac > args.max_failed_frac:
+        print(f"FATAL: {failed} of {done + failed} documents failed to insert "
+              f"({frac:.1%} > --max-failed-frac {args.max_failed_frac:.0%}); the first "
               "cause is the earliest ERROR:lightrag line above. Rerunning retries only "
               "the failed ones, so fix the cause and resubmit.", flush=True)
         sys.exit(1)
+    if failed:
+        print(f"WARNING: {failed} of {done + failed} documents extracted no entities "
+              f"({frac:.1%}, within --max-failed-frac). Continuing.", flush=True)
 
     total = sum(
         os.path.getsize(os.path.join(dp, f))

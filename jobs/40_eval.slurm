@@ -67,6 +67,10 @@ fi
 
 require_cuda "the eval" || exit 1
 
+# This stage only: the 7B has room for 32k, and LightRAG's hybrid prompts need it.
+# The KG build keeps 16384 - Qwen2.5-32B-AWQ leaves no KV cache for more.
+export VALIK_MAX_MODEL_LEN=32768
+
 start_vllm "$QA_MODEL" || exit 1
 
 if [ "$CFG" = "nokg" ]; then
@@ -84,6 +88,7 @@ else
         --embed-model "$EMBED_MODEL" \
         --query-mode hybrid \
         --caption-source valik --caption-suffix .pruned.txt \
+        --max-context-tokens "${VALIK_CONTEXT_TOKENS:-3000}" \
         --split test --limit "$LIMIT" --concurrency 32 \
         --out "$OUT" || exit 1
 fi

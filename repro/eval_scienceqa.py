@@ -73,6 +73,9 @@ async def main():
     ap.add_argument("--limit", type=int, default=0,
                     help="0 = full split; use e.g. 500 for a smoke test")
     ap.add_argument("--out", required=True, help="output prefix; writes .jsonl and .json")
+    ap.add_argument("--max-context-tokens", type=int, default=3000,
+                    help="per-channel retrieval budget (LightRAG default 4000); hybrid "
+                         "spends three at once, so keep 3x this under --max-model-len")
     args = ap.parse_args()
 
     if args.caption_source is None:
@@ -159,7 +162,13 @@ async def main():
                 func=lambda texts: hf_embed(texts, tok, emb),
             ),
         )
-        param = QueryParam(mode=args.query_mode, response_type=RESPONSE_TYPE)
+        param = QueryParam(
+            mode=args.query_mode,
+            response_type=RESPONSE_TYPE,
+            max_token_for_text_unit=args.max_context_tokens,
+            max_token_for_local_context=args.max_context_tokens,
+            max_token_for_global_context=args.max_context_tokens,
+        )
 
         async def ask(question):
             return await rag.aquery(question, param=param)
