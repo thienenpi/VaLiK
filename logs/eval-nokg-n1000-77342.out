@@ -1,0 +1,41 @@
+Job 77342 on gpu01; config=nokg; limit=1000; started Fri Sep 25 03:30:37 PM UTC 2026
+Fri Sep 25 15:30:37 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:4E:00.0 Off |                    0 |
+| N/A   33C    P0    83W / 400W |      0MiB / 40960MiB |    100%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+=== cuda ok on gpu01: NVIDIA A100-SXM4-40GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+=== fetching weights if the cache is cold: Qwen/Qwen2.5-7B-Instruct
+=== weights ready: Qwen/Qwen2.5-7B-Instruct (0 s)
+    /media/lhbac29/hf/hub/models--Qwen--Qwen2.5-7B-Instruct/snapshots/a09a35458c702b33eeacc393d103063234e8bc28
+=== starting vLLM: Qwen/Qwen2.5-7B-Instruct on port 37342 --disable-log-requests
+    still loading after 5 of 45 min: Loading safetensors checkpoint shards:  25% Completed | 1/4 [03:27<10:21, 207.31s/it]
+    still loading after 10 of 45 min: Loading safetensors checkpoint shards:  75% Completed | 3/4 [08:33<02:45, 165.26s/it]
+=== vLLM ready after 722 s
+nokg/sqa: 1000 of 1000 to answer
+  200/1000  27.4 q/s  ETA 0 min
+  400/1000  41.6 q/s  ETA 0 min
+  600/1000  50.2 q/s  ETA 0 min
+  800/1000  54.7 q/s  ETA 0 min
+  1000/1000  59.6 q/s  ETA 0 min
+
+nokg / KG=- / caption=sqa / n=1000
+     NAT      SOC      LAN      TXT      IMG       NO     G1-6    G7-12  Average
+   80.23    66.67    81.01    95.98    66.94    83.64    80.62    71.94    77.50
+parse rate: 96.30% (below ~95% means the prompt is wrong, not the KG)
+Finished Fri Sep 25 03:42:53 PM UTC 2026
