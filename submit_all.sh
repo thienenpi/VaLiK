@@ -57,7 +57,11 @@ if [ -n "$ONLY" ] && [ -n "$FROM" ]; then
 fi
 
 mkdir -p logs outputs/results
-EXPORT="ALL,VALIK_LIMIT=${LIMIT}"
+# One W&B group per submission, so the stages of this chain sit together. Set
+# VALIK_WANDB_GROUP yourself to put a --from resubmit back in an earlier chain's group.
+VARIANT="$( [ "$LIMIT" = "0" ] && echo "full" || echo "n${LIMIT}" )"
+export VALIK_WANDB_GROUP="${VALIK_WANDB_GROUP:-${VARIANT}-$(date +%m%d-%H%M)}"
+EXPORT="ALL,VALIK_LIMIT=${LIMIT},VALIK_WANDB_GROUP=${VALIK_WANDB_GROUP}"
 
 # Empty means "no exclusion", which sbatch would reject as an empty --exclude.
 EXCL=()
@@ -106,6 +110,7 @@ else
 fi
 [ "$DRY" = 1 ] && echo "### DRY RUN - nothing will be submitted ###"
 echo "stages: ${SELECTED[*]}"
+echo "wandb: project $WANDB_PROJECT, group $VALIK_WANDB_GROUP ($WANDB_MODE)"
 if [ -n "${VALIK_EXCLUDE:-}" ]; then
     echo "exclude: $VALIK_EXCLUDE  (GPU too old for the vLLM stages, or driver too old for torch)"
 else
@@ -143,3 +148,6 @@ echo
 echo "watch   : squeue -u \$USER"
 echo "logs    : tail -f logs/*-${FIRST_ID}*.out"
 echo "collect : python repro/report.py"
+if [ "$WANDB_MODE" = "offline" ]; then
+    echo "wandb   : wandb sync $WANDB_DIR/wandb/offline-run-*"
+fi

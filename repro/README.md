@@ -32,6 +32,28 @@ A smoke run proves the plumbing: vLLM comes up, LightRAG extracts entities, answ
 parse. It does **not** prove accuracy — a KG built from 1000 problems is far too
 small for the paper's numbers. Read the parse rate, not the score.
 
+## Weights & Biases
+
+Each stage logs to W&B from inside its own job, so nothing waits for the chain to
+finish. A chain cut off by the 2-day limit still shows every stage it got through.
+
+```bash
+pip install wandb && wandb login # once, on the login node
+```
+
+- One run per array task: `caption-shard0`, `prune-shard1`, `kg-text_image`, `eval-nokg`, ...
+- One group per `submit_all.sh` call (`full-1013-2340`, `n1000-...`), so the stages of a chain sit together.
+- A requeued task resumes its own run instead of starting a new one.
+- Live progress: caption img/s and ETA, prune kept %, KG `doc_status` counts every 5 min, eval running accuracy and parse rate.
+- Eval runs end with `acc/*`, `paper/*` and `delta/*` per Table 3 column, plus the `.json`/`.jsonl` as an artifact.
+- The last eval task to finish publishes `table3-<variant>`: the paper/ours/delta table and the claim checks from `report.py`.
+
+W&B never fails a stage. If it is unreachable, the job prints a warning and carries on.
+Compute nodes without internet: submit with `WANDB_MODE=offline`, then run the `wandb sync`
+line `submit_all.sh` prints, from the login node. `WANDB_MODE=disabled` turns logging off.
+To put a `--from` resubmit back in an earlier chain's group, set `VALIK_WANDB_GROUP`.
+`python repro/publish_wandb.py [results_dir] [variant]` re-publishes the table by hand.
+
 ## Pipeline
 
 | Stage | Job | Paper | Wall-clock |

@@ -21,6 +21,7 @@ import asyncio
 import os
 import re
 import sys
+import threading
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.environ.get("VALIK_ROOT", ".."), "src", "LightRAG"))
@@ -32,6 +33,7 @@ from common import (  # noqa: E402
     load_splits,
     problem_to_kb_text,
     read_caption,
+    wandb_run,
 )
 
 THINK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -75,6 +77,18 @@ def build_documents(mode, split, caption_suffix, limit=0):
     return docs
 
 
+def watch_doc_status(rag, run, stop, every=300):
+    """rag.insert() blocks for the whole build, so progress comes from a thread
+    reading LightRAG's in-memory doc_status every `every` seconds."""
+    while not stop.wait(every):
+        try:
+            statuses = [d["status"] for d in list(rag.doc_status._data.values())]
+        except RuntimeError:  # the insert loop resized the dict mid-copy
+            continue
+        run.log({s: sum(st == s for st in statuses)
+                 for s in ("pending", "processing", "processed", "failed")})
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", required=True, choices=["text_only", "image_only", "text_image"])
@@ -96,6 +110,8 @@ def main():
                     help="fraction of documents allowed to extract nothing before the "
                          "build counts as broken; a dead LLM fails nearly all of them")
     args = ap.parse_args()
+    tag = os.path.basename(os.path.normpath(args.working_dir)).removeprefix("kg_")
+    run = wandb_run("kg", f"kg-{tag}", vars(args))
 
     import torch
     from transformers import AutoModel, AutoTokenizer
@@ -155,8 +171,13 @@ def main():
         flush=True,
     )
 
+    run.summary.update({"documents": len(docs), "chars": chars})
+
     # Documents already in doc_status are skipped, so a requeued job resumes.
+    stop = threading.Event()
+    threading.Thread(target=watch_doc_status, args=(rag, run, stop), daemon=True).start()
     rag.insert(docs)
+    stop.set()
 
     # ainsert logs a failed document and moves on, so without this the stage exits 0
     # having built nothing and .build_done makes the next run skip it. A few failures
@@ -169,6 +190,7 @@ def main():
     done, failed = counts.get("processed", 0), counts.get("failed", 0)
     frac = failed / max(done + failed, 1)
     print(f"doc_status: {counts}", flush=True)
+    run.summary.update({"processed": done, "failed": failed, "failed_frac": frac})
     if frac > args.max_failed_frac:
         print(f"FATAL: {failed} of {done + failed} documents failed to insert "
               f"({frac:.1%} > --max-failed-frac {args.max_failed_frac:.0%}); the first "
@@ -186,6 +208,8 @@ def main():
     )
     print(f"done. {args.working_dir} = {total / 1e6:.0f} MB "
           f"(paper Sec 4.2 reports 489 MB for the full ScienceQA MMKG)", flush=True)
+    run.summary["size_mb"] = total / 1e6
+    run.finish()
 
 
 if __name__ == "__main__":

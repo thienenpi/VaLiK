@@ -41,6 +41,18 @@ export TAU="${TAU:-0.20}"
 # ample; an 80 GB card can go back to 32768.
 export VALIK_MAX_MODEL_LEN="${VALIK_MAX_MODEL_LEN:-16384}"
 
+# W&B: every stage logs its own run while it works (repro/common.py:wandb_run), so a
+# chain cut off by the 2-day limit still shows what it finished. Run files go under
+# $DATA_ROOT, not logs/, which is synced to git. Compute nodes without internet:
+# WANDB_MODE=offline, then  wandb sync $WANDB_DIR/wandb/offline-run-*  from the login
+# node. WANDB_MODE=disabled turns it off.
+export WANDB_PROJECT="${WANDB_PROJECT:-valik-repro}"
+export WANDB_MODE="${WANDB_MODE:-online}"
+export WANDB_DIR="$DATA_ROOT/wandb"
+export WANDB_API_KEY=
+export WANDB_ENTITY=thiennp3-hcmus
+mkdir -p "$WANDB_DIR"
+
 # Nodes the GPU stages must not land on (comma-separated, for sbatch --exclude).
 #
 # gpu02 only, and the reason is the GPU, not the driver: gpu02 is an A100 (compute

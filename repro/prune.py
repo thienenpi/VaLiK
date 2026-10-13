@@ -21,7 +21,7 @@ import sys
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import iter_split_images, read_caption  # noqa: E402
+from common import iter_split_images, read_caption, wandb_run  # noqa: E402
 
 
 def chunk_text(text, mode, window_size):
@@ -63,6 +63,7 @@ def main():
     from PIL import Image
     from transformers import CLIPModel, CLIPProcessor
 
+    run = wandb_run("prune", f"prune-shard{args.shard_id}", vars(args))
     targets = list(iter_split_images(args.splits, args.limit))
     mine = targets[args.shard_id :: args.num_shards]
     todo = [
@@ -82,6 +83,7 @@ def main():
         sys.exit(1)
     if not todo:
         print("nothing to do - every assigned image is already pruned", flush=True)
+        run.finish()
         return
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -138,6 +140,8 @@ def main():
 
         if n_done % 200 == 0 and n_done:
             print(f"  {n_done}/{len(todo)}  kept {100.0 * n_kept / max(n_total, 1):.1f}%", flush=True)
+            run.log({"done": n_done, "kept_pct": 100.0 * n_kept / max(n_total, 1),
+                     "restored": n_empty, "missing": n_missing})
 
     print(
         f"shard {args.shard_id}: {n_done} files, kept {n_kept}/{n_total} "
@@ -146,6 +150,11 @@ def main():
         f"{n_missing} skipped for a missing image{args.in_suffix}",
         flush=True,
     )
+    run.summary.update({
+        "files": n_done, "sentences": n_total, "kept": n_kept,
+        "kept_pct": 100.0 * n_kept / max(n_total, 1),
+        "restored": n_empty, "missing": n_missing,
+    })
 
     # A shard that wrote nothing because stage 1 left no captions is a failed shard,
     # not an empty one - exiting 0 here would satisfy afterok and send the KG build
@@ -161,6 +170,7 @@ def main():
             flush=True,
         )
         sys.exit(1)
+    run.finish()
 
 
 if __name__ == "__main__":

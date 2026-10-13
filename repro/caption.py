@@ -18,7 +18,7 @@ import torch
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import iter_split_images  # noqa: E402
+from common import iter_split_images, wandb_run  # noqa: E402
 
 PROMPT = """
 Please provide a detailed visual description of this image.
@@ -43,6 +43,7 @@ def main():
     from transformers import AutoProcessor, AutoModelForImageTextToText
     from qwen_vl_utils import process_vision_info
 
+    run = wandb_run("caption", f"caption-shard{args.shard_id}", vars(args))
     targets = list(iter_split_images(args.splits, args.limit))
     mine = targets[args.shard_id :: args.num_shards]
     todo = [
@@ -65,8 +66,10 @@ def main():
             flush=True,
         )
         sys.exit(1)
+    run.summary["assigned"] = len(mine)
     if not todo:
         print("nothing to do - every assigned image already has a description", flush=True)
+        run.finish()
         return
 
     processor = AutoProcessor.from_pretrained(args.model, trust_remote_code=True)
@@ -79,6 +82,7 @@ def main():
     model.eval()
 
     t0 = time.time()
+    n_err = 0
     for i, (split, pid, img_path) in enumerate(todo):
         out = os.path.join(os.path.dirname(img_path), "image" + args.suffix)
         if os.path.exists(out):  # another shard may have raced us; harmless
@@ -123,6 +127,7 @@ def main():
             os.replace(tmp, out)
         except Exception as e:  # one bad image must not kill a 2h shard
             print(f"ERR {split}/{pid}: {e}", flush=True)
+            n_err += 1
 
         if (i + 1) % 50 == 0:
             rate = (i + 1) / (time.time() - t0)
@@ -131,8 +136,12 @@ def main():
                 f"  {i + 1}/{len(todo)}  {rate:.2f} img/s  ETA {eta:.0f} min",
                 flush=True,
             )
+            run.log({"done": i + 1, "remaining": len(todo) - i - 1,
+                     "img_per_s": rate, "eta_min": eta, "errors": n_err})
 
     print(f"shard {args.shard_id} done in {(time.time() - t0) / 60:.1f} min", flush=True)
+    run.summary.update({"errors": n_err, "minutes": (time.time() - t0) / 60})
+    run.finish()
 
 
 if __name__ == "__main__":

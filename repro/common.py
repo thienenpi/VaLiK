@@ -204,6 +204,74 @@ def format_table(cols, title=""):
     return f"{title}\n{head}\n{body}"
 
 
+# -------------------------------------------------------------------------- wandb
+
+class _NoRun:
+    """Stands in for a W&B run when wandb is off or unreachable."""
+
+    def __init__(self):
+        self.summary = {}
+
+    def log(self, *args, **kwargs):
+        pass
+
+    def finish(self, *args, **kwargs):
+        pass
+
+
+def variant_of(limit):
+    """The tag every stage stamps on its artefacts: "full" or "n<limit>"."""
+    return f"n{limit}" if limit else "full"
+
+
+def wandb_run(stage, name, config, run_id=None):
+    """One W&B run per SLURM array task. Every stage of one submit_all.sh call shares
+    the group in $VALIK_WANDB_GROUP, so a chain cut off by the time limit still shows
+    the stages it finished. A requeued task resumes its own run: the id comes from
+    SLURM_ARRAY_JOB_ID, which survives --requeue.
+
+    Never fatal - a stage that dies over W&B would fail afterok and stall the chain.
+    """
+    if os.environ.get("WANDB_MODE") == "disabled":
+        return _NoRun()
+    variant = variant_of(int(config.get("limit") or 0))
+    if run_id is None:
+        job = os.environ.get("SLURM_ARRAY_JOB_ID") or os.environ.get("SLURM_JOB_ID")
+        task = os.environ.get("SLURM_ARRAY_TASK_ID", "0")
+        run_id = f"{stage}-{job}-{task}" if job else None
+    try:
+        import wandb
+
+        return wandb.init(
+            project=os.environ.get("WANDB_PROJECT", "valik-repro"),
+            entity=os.environ.get("WANDB_ENTITY"),
+            group=os.environ.get("VALIK_WANDB_GROUP", variant),
+            job_type=stage,
+            name=name,
+            id=run_id,
+            resume="allow",
+            tags=[variant],
+            config=config,
+            settings=wandb.Settings(init_timeout=120),
+        )
+    except Exception as e:
+        print(f"WARNING: W&B logging off for this job ({e})", flush=True)
+        return _NoRun()
+
+
+def log_files(run, name, kind, paths):
+    """Attach the files that exist as one artifact; a no-op without a real run."""
+    if isinstance(run, _NoRun):
+        return
+    import wandb
+
+    art = wandb.Artifact(name, type=kind)
+    for p in paths:
+        if os.path.exists(p):
+            art.add_file(p)
+    run.log_artifact(art)
+
+
 async def hf_embed(texts, tokenizer, model):
     """Replaces lightrag.llm.hf.hf_embed, which passes input_ids alone: nomic-bert
     dereferences the missing attention_mask, and the mean would cover PAD anyway."""

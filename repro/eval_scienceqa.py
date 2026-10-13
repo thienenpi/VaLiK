@@ -37,9 +37,13 @@ from common import (  # noqa: E402
     load_problems,
     load_sqa_captions,
     load_splits,
+    log_files,
     parse_choice,
     read_caption,
+    variant_of,
+    wandb_run,
 )
+from publish_wandb import publish_table3, row_summary  # noqa: E402
 
 SYSTEM = (
     "You are answering multiple-choice science exam questions. "
@@ -82,6 +86,10 @@ async def main():
         args.caption_source = "sqa" if args.mode == "nokg" else "valik"
     if args.mode == "kg" and not args.working_dir:
         ap.error("--working-dir is required for --mode kg")
+
+    # <config>-<variant>, the name 40_eval.slurm gives --out
+    cfg = os.path.basename(args.out).rpartition("-")[0] or os.path.basename(args.out)
+    run = wandb_run("eval", f"eval-{cfg}", vars(args))
 
     problems, pid_splits = load_problems(), load_splits()
     pids = pid_splits[args.split]
@@ -177,7 +185,7 @@ async def main():
     sem = asyncio.Semaphore(args.concurrency)
     lock = asyncio.Lock()
     out_f = open(jsonl_path, "a", encoding="utf-8")
-    counter = {"n": 0, "err": 0}
+    counter = {"n": 0, "err": 0, "correct": 0, "parsed": 0}
     t0 = time.time()
 
     async def one(pid):
@@ -207,10 +215,16 @@ async def main():
             out_f.write(json.dumps(rec, ensure_ascii=False) + "\n")
             out_f.flush()
             counter["n"] += 1
+            counter["correct"] += rec["correct"]
+            counter["parsed"] += rec["parsed"]
             if counter["n"] % 200 == 0:
                 rate = counter["n"] / (time.time() - t0)
                 print(f"  {counter['n']}/{len(todo)}  {rate:.1f} q/s  "
                       f"ETA {(len(todo) - counter['n']) / rate / 60:.0f} min", flush=True)
+                run.log({"done": counter["n"], "remaining": len(todo) - counter["n"],
+                         "q_per_s": rate, "errors": counter["err"],
+                         "running_acc": 100.0 * counter["correct"] / counter["n"],
+                         "running_parse_rate": 100.0 * counter["parsed"] / counter["n"]})
         return rec
 
     results = list(done.values())
@@ -239,6 +253,16 @@ async def main():
             f,
             indent=2,
         )
+
+    with open(args.out + ".json", encoding="utf-8") as f:
+        run.summary.update(row_summary(cfg, json.load(f)))
+    run.summary["errors"] = counter["err"]
+    log_files(run, f"scienceqa-{cfg}-{variant_of(args.limit)}", "eval-results",
+              [args.out + ".json", jsonl_path])
+    run.finish()
+
+    # Whichever eval task finishes last publishes the side-by-side Table 3.
+    publish_table3(os.path.dirname(os.path.abspath(args.out)), variant_of(args.limit))
 
 
 if __name__ == "__main__":
