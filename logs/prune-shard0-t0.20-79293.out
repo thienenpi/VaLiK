@@ -1,0 +1,78 @@
+Job 79293 on gpu02; shard 0/2; tau=0.20; limit=0; started Tue Oct 20 11:00:41 PM +07 2026
+Tue Oct 20 23:00:41 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 555.42.02              Driver Version: 555.42.02      CUDA Version: 12.5     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:63:00.0 Off |                    0 |
+| N/A   31C    P0             34W /  250W |       1MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+=== cuda ok on gpu02: NVIDIA A100-PCIE-40GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from WANDB_API_KEY.
+wandb: Currently logged in as: thienenpi280220 (thiennp3-hcmus) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run prune-79260-0
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in /media/lhbac29/wandb/wandb/run-20261020_230131-prune-79260-0
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run prune-shard0
+wandb: ⭐️ View project at https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro
+wandb: 🚀 View run at https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro/runs/prune-79260-0
+[shard 0/2] 4118 assigned, 4118 remaining
+  200/4118  kept 81.5%
+  400/4118  kept 81.1%
+  600/4118  kept 79.6%
+  800/4118  kept 79.5%
+  1000/4118  kept 79.8%
+  1200/4118  kept 79.4%
+  1400/4118  kept 79.4%
+  1600/4118  kept 79.8%
+  1800/4118  kept 79.2%
+  2000/4118  kept 79.2%
+  2200/4118  kept 79.2%
+  2400/4118  kept 79.2%
+  2600/4118  kept 78.9%
+  2800/4118  kept 79.0%
+  3000/4118  kept 78.9%
+  3200/4118  kept 78.9%
+  3400/4118  kept 78.8%
+  3600/4118  kept 78.8%
+  3800/4118  kept 78.8%
+  4000/4118  kept 78.7%
+shard 0: 4118 files, kept 32368/41114 (78.7%) sentences, 69 fully-pruned files restored, 0 skipped for a missing image.txt
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading wandb-summary.json; uploading config.yaml
+wandb: uploading summary, console lines 21-21
+wandb: 
+wandb: Run history:
+wandb:     done ▁▁▂▂▂▃▃▄▄▄▅▅▅▆▆▇▇▇██
+wandb: kept_pct █▇▃▃▄▃▃▄▂▂▂▂▁▂▁▁▁▁▁▁
+wandb:  missing ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: restored ▁▁▂▂▃▃▄▄▅▅▅▅▆▆▇▇▇▇██
+wandb: 
+wandb: Run summary:
+wandb:      done 4000
+wandb:     files 4118
+wandb:      kept 32368
+wandb:  kept_pct 78.72744
+wandb:   missing 0
+wandb:  restored 69
+wandb: sentences 41114
+wandb: 
+wandb: 🚀 View run prune-shard0 at: https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro/runs/prune-79260-0
+wandb: ⭐️ View project at: https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /media/lhbac29/wandb/wandb/run-20261020_230131-prune-79260-0/logs
+Finished Tue Oct 20 11:19:28 PM +07 2026

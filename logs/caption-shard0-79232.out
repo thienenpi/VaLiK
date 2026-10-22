@@ -1,0 +1,155 @@
+Job 79232 on gpu01; shard 0/2; splits=train test; limit=0; started Mon Oct 19 07:45:04 AM UTC 2026
+Mon Oct 19 07:45:04 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:90:00.0 Off |                    0 |
+| N/A   42C    P0    61W / 400W |      0MiB / 40960MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+=== cuda ok on gpu01: NVIDIA A100-SXM4-40GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from WANDB_API_KEY.
+wandb: Currently logged in as: thienenpi280220 (thiennp3-hcmus) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run caption-79134-0
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in /media/lhbac29/wandb/wandb/run-20261019_074543-caption-79134-0
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run caption-shard0
+wandb: ⭐️ View project at https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro
+wandb: 🚀 View run at https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro/runs/caption-79134-0
+[shard 0/2] 4118 assigned, 4118 remaining of 8235 total
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.48, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+Loading checkpoint shards:   0%|          | 0/5 [00:00<?, ?it/s]Loading checkpoint shards:  20%|██        | 1/5 [00:23<01:32, 23.23s/it]Loading checkpoint shards:  40%|████      | 2/5 [00:31<00:43, 14.64s/it]Loading checkpoint shards:  60%|██████    | 3/5 [00:40<00:23, 11.84s/it]Loading checkpoint shards:  80%|████████  | 4/5 [00:49<00:10, 10.94s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:50<00:00,  7.07s/it]Loading checkpoint shards: 100%|██████████| 5/5 [00:50<00:00, 10.03s/it]
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:629: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.01` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:634: UserWarning: `do_sample` is set to `False`. However, `top_p` is set to `0.001` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_p`.
+  warnings.warn(
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:651: UserWarning: `do_sample` is set to `False`. However, `top_k` is set to `1` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_k`.
+  warnings.warn(
+  50/4118  0.17 img/s  ETA 403 min
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:629: UserWarning: `do_sample` is set to `False`. However, `temperature` is set to `0.01` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `temperature`.
+  warnings.warn(
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:634: UserWarning: `do_sample` is set to `False`. However, `top_p` is set to `0.001` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_p`.
+  warnings.warn(
+/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/transformers/generation/configuration_utils.py:651: UserWarning: `do_sample` is set to `False`. However, `top_k` is set to `1` -- this flag is only used in sample-based generation modes. You should set `do_sample=True` or unset `top_k`.
+  warnings.warn(
+  100/4118  0.18 img/s  ETA 381 min
+  150/4118  0.18 img/s  ETA 371 min
+  200/4118  0.17 img/s  ETA 376 min
+  250/4118  0.18 img/s  ETA 365 min
+  300/4118  0.18 img/s  ETA 358 min
+  350/4118  0.18 img/s  ETA 346 min
+  400/4118  0.18 img/s  ETA 341 min
+  450/4118  0.18 img/s  ETA 337 min
+  500/4118  0.18 img/s  ETA 334 min
+  550/4118  0.18 img/s  ETA 329 min
+  600/4118  0.18 img/s  ETA 326 min
+  650/4118  0.18 img/s  ETA 320 min
+  700/4118  0.18 img/s  ETA 314 min
+  750/4118  0.18 img/s  ETA 309 min
+  800/4118  0.18 img/s  ETA 305 min
+  850/4118  0.18 img/s  ETA 301 min
+  900/4118  0.18 img/s  ETA 296 min
+  950/4118  0.18 img/s  ETA 291 min
+  1000/4118  0.18 img/s  ETA 287 min
+  1050/4118  0.18 img/s  ETA 281 min
+  1100/4118  0.18 img/s  ETA 277 min
+  1150/4118  0.18 img/s  ETA 271 min
+  1200/4118  0.18 img/s  ETA 267 min
+  1250/4118  0.18 img/s  ETA 263 min
+  1300/4118  0.18 img/s  ETA 259 min
+  1350/4118  0.18 img/s  ETA 254 min
+  1400/4118  0.18 img/s  ETA 249 min
+  1450/4118  0.18 img/s  ETA 245 min
+  1500/4118  0.18 img/s  ETA 240 min
+  1550/4118  0.18 img/s  ETA 235 min
+  1600/4118  0.18 img/s  ETA 230 min
+  1650/4118  0.18 img/s  ETA 225 min
+  1700/4118  0.18 img/s  ETA 221 min
+  1750/4118  0.18 img/s  ETA 216 min
+  1800/4118  0.18 img/s  ETA 212 min
+  1850/4118  0.18 img/s  ETA 208 min
+  1900/4118  0.18 img/s  ETA 203 min
+  1950/4118  0.18 img/s  ETA 199 min
+  2000/4118  0.18 img/s  ETA 195 min
+  2050/4118  0.18 img/s  ETA 190 min
+  2100/4118  0.18 img/s  ETA 185 min
+  2150/4118  0.18 img/s  ETA 180 min
+  2200/4118  0.18 img/s  ETA 175 min
+  2250/4118  0.18 img/s  ETA 170 min
+  2300/4118  0.18 img/s  ETA 166 min
+  2350/4118  0.18 img/s  ETA 161 min
+  2400/4118  0.18 img/s  ETA 156 min
+  2450/4118  0.18 img/s  ETA 152 min
+  2500/4118  0.18 img/s  ETA 147 min
+  2550/4118  0.18 img/s  ETA 143 min
+  2600/4118  0.18 img/s  ETA 138 min
+  2650/4118  0.18 img/s  ETA 134 min
+  2700/4118  0.18 img/s  ETA 129 min
+  2750/4118  0.18 img/s  ETA 125 min
+  2800/4118  0.18 img/s  ETA 120 min
+  2850/4118  0.18 img/s  ETA 115 min
+  2900/4118  0.18 img/s  ETA 111 min
+  2950/4118  0.18 img/s  ETA 106 min
+  3000/4118  0.18 img/s  ETA 102 min
+  3050/4118  0.18 img/s  ETA 97 min
+  3100/4118  0.18 img/s  ETA 93 min
+  3150/4118  0.18 img/s  ETA 88 min
+  3200/4118  0.18 img/s  ETA 84 min
+  3250/4118  0.18 img/s  ETA 79 min
+  3300/4118  0.18 img/s  ETA 75 min
+  3350/4118  0.18 img/s  ETA 70 min
+  3400/4118  0.18 img/s  ETA 66 min
+  3450/4118  0.18 img/s  ETA 61 min
+  3500/4118  0.18 img/s  ETA 56 min
+  3550/4118  0.18 img/s  ETA 52 min
+  3600/4118  0.18 img/s  ETA 47 min
+  3650/4118  0.18 img/s  ETA 43 min
+  3700/4118  0.18 img/s  ETA 38 min
+  3750/4118  0.18 img/s  ETA 33 min
+  3800/4118  0.18 img/s  ETA 29 min
+  3850/4118  0.18 img/s  ETA 24 min
+  3900/4118  0.18 img/s  ETA 20 min
+  3950/4118  0.18 img/s  ETA 15 min
+  4000/4118  0.18 img/s  ETA 11 min
+  4050/4118  0.18 img/s  ETA 6 min
+  4100/4118  0.18 img/s  ETA 2 min
+shard 0 done in 373.3 min
+wandb: updating run metadata
+wandb: uploading wandb-summary.json; uploading config.yaml; uploading output.log
+wandb: uploading wandb-summary.json; uploading config.yaml
+wandb: uploading summary, console lines 97-97
+wandb: 
+wandb: Run history:
+wandb:      done ▁▁▁▁▂▂▂▂▂▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇▇▇██
+wandb:    errors ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:   eta_min █▇▇▇▇▆▆▆▆▆▆▆▅▅▅▅▅▅▅▅▄▄▄▄▄▃▃▃▃▃▂▂▂▂▂▂▁▁▁▁
+wandb: img_per_s ▁▄▄▅▇▇▇▇▇▇▇▇▇▇▇▇██▇▇▇▇████████████▇█████
+wandb: remaining ████▇▇▇▇▇▆▆▆▆▆▆▅▅▅▅▅▅▄▄▄▄▄▄▄▃▃▂▂▂▂▂▂▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:  assigned 4118
+wandb:      done 4100
+wandb:    errors 0
+wandb:   eta_min 1.63229
+wandb: img_per_s 0.18379
+wandb:   minutes 373.30789
+wandb: remaining 18
+wandb: 
+wandb: 🚀 View run caption-shard0 at: https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro/runs/caption-79134-0
+wandb: ⭐️ View project at: https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /media/lhbac29/wandb/wandb/run-20261019_074543-caption-79134-0/logs
+Finished Mon Oct 19 02:05:47 PM UTC 2026
