@@ -1,0 +1,124 @@
+Job 80291 on gpu01; mode=image_only; captions=.pruned.txt; limit=0; started Tue Oct 27 11:35:11 PM UTC 2026
+Tue Oct 27 23:35:11 2026       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.147.05   Driver Version: 525.147.05   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA A100-SXM...  On   | 00000000:47:00.0 Off |                    0 |
+| N/A   31C    P0    55W / 400W |      0MiB / 40960MiB |      0%      Default |
+|                               |                      |             Disabled |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+=== cuda ok on gpu01: NVIDIA A100-SXM4-40GB, torch 2.5.1+cu124 (built for CUDA 12.4)
+=== fetching weights if the cache is cold: Qwen/Qwen2.5-32B-Instruct-AWQ
+=== weights ready: Qwen/Qwen2.5-32B-Instruct-AWQ (0 s)
+    /media/lhbac29/hf/hub/models--Qwen--Qwen2.5-32B-Instruct-AWQ/snapshots/5c7cb76a268fc6cfbb9c4777eb24ba6e27f9ee6c
+=== starting vLLM: Qwen/Qwen2.5-32B-Instruct-AWQ on port 20291 --disable-log-requests
+    still loading after 5 of 45 min: Loading safetensors checkpoint shards:  80% Completed | 4/5 [03:31<00:51, 51.91s/it]
+=== vLLM ready after 572 s
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from WANDB_API_KEY.
+wandb: Currently logged in as: thienenpi280220 (thiennp3-hcmus) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run kg-80266-0
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in /media/lhbac29/wandb/wandb/run-20261027_234441-kg-80266-0
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run kg-image_only
+wandb: ⭐️ View project at https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro
+wandb: 🚀 View run at https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro/runs/kg-80266-0
+<All keys matched successfully>
+INFO:nano-vectordb:Load (14390, 768) data
+INFO:nano-vectordb:Init {'embedding_dim': 768, 'metric': 'cosine', 'storage_file': 'outputs/kg_image_only/vdb_entities.json'} 14390 data
+INFO:nano-vectordb:Load (27804, 768) data
+INFO:nano-vectordb:Init {'embedding_dim': 768, 'metric': 'cosine', 'storage_file': 'outputs/kg_image_only/vdb_relationships.json'} 27804 data
+INFO:nano-vectordb:Load (4729, 768) data
+INFO:nano-vectordb:Init {'embedding_dim': 768, 'metric': 'cosine', 'storage_file': 'outputs/kg_image_only/vdb_chunks.json'} 4729 data
+INFO:lightrag:Loaded document status storage with 4732 records
+mode=image_only split=train: 6218 documents, 5.20M chars (~1.30M tokens)
+INFO:lightrag:Processing 1 new unique documents
+Processing batch 1:   0%|          | 0/1 [00:00<?, ?it/s]INFO:lightrag:Inserting 1 vectors to chunks
+
+Generating embeddings:   0%|          | 0/1 [00:00<?, ?batch/s][A
+Generating embeddings: 100%|██████████| 1/1 [00:23<00:00, 23.94s/batch][AGenerating embeddings: 100%|██████████| 1/1 [00:23<00:00, 23.95s/batch]
+
+Level 2 - Extracting entities and relationships:   0%|          | 0/1 [00:00<?, ?chunk/s][AINFO:httpx2:HTTP Request: POST http://127.0.0.1:20291/v1/chat/completions "HTTP/1.1 400 Bad Request"
+ERROR:lightrag:OpenAI API Call Failed: Error code: 400 - {'object': 'error', 'message': "This model's maximum context length is 16384 tokens. However, you requested 16413 tokens in the messages, Please reduce the length of the messages.", 'type': 'BadRequestError', 'param': None, 'code': 400}
+ERROR:lightrag:Model: Qwen/Qwen2.5-32B-Instruct-AWQ
+ERROR:lightrag:Request parameters: {}
+
+                                                                                         [AERROR:lightrag:Failed to process document doc-e1bc802ee3cf785bca03c2ab64b33940: Error code: 400 - {'object': 'error', 'message': "This model's maximum context length is 16384 tokens. However, you requested 16413 tokens in the messages, Please reduce the length of the messages.", 'type': 'BadRequestError', 'param': None, 'code': 400}
+Traceback (most recent call last):
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/lightrag.py", line 491, in ainsert
+    raise e
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/lightrag.py", line 450, in ainsert
+    maybe_new_kg = await extract_entities(
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/operate.py", line 480, in extract_entities
+    results.append(await result)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/asyncio/tasks.py", line 571, in _wait_for_one
+    return f.result()  # May raise f.exception().
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/operate.py", line 415, in _process_single_content
+    glean_result = await _user_llm_func_with_cache(
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/operate.py", line 376, in _user_llm_func_with_cache
+    res: str = await use_llm_func(
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/utils.py", line 136, in wait_func
+    result = await func(*args, **kwargs)
+  File "/media/lhbac29/valik/repro/build_kg.py", line 130, in llm_model_func
+    out = await openai_complete_if_cache(
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 193, in async_wrapped
+    return await copy(fn, *args, **kwargs)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 112, in __call__
+    do = await self.iter(retry_state=retry_state)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 157, in iter
+    result = await action(retry_state)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/tenacity/_utils.py", line 111, in inner
+    return call(*args, **kwargs)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/tenacity/__init__.py", line 393, in <lambda>
+    self._add_action_func(lambda rs: rs.outcome.result())
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/concurrent/futures/_base.py", line 451, in result
+    return self.__get_result()
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/concurrent/futures/_base.py", line 403, in __get_result
+    raise self._exception
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/tenacity/asyncio/__init__.py", line 116, in __call__
+    result = await fn(*args, **kwargs)
+  File "/media/lhbac29/valik/src/LightRAG/lightrag/llm/openai.py", line 140, in openai_complete_if_cache
+    response = await openai_async_client.chat.completions.create(
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/openai/resources/chat/completions/completions.py", line 2931, in create
+    return await self._post(
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/openai/_base_client.py", line 1979, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+  File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/openai/_base_client.py", line 1764, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.BadRequestError: Error code: 400 - {'object': 'error', 'message': "This model's maximum context length is 16384 tokens. However, you requested 16413 tokens in the messages, Please reduce the length of the messages.", 'type': 'BadRequestError', 'param': None, 'code': 400}
+
+Processing batch 1: 100%|██████████| 1/1 [00:30<00:00, 30.55s/it]Processing batch 1: 100%|██████████| 1/1 [00:30<00:00, 30.55s/it]
+doc_status: {<DocStatus.PENDING: 'pending'>: 0, <DocStatus.PROCESSING: 'processing'>: 0, <DocStatus.PROCESSED: 'processed'>: 4731, <DocStatus.FAILED: 'failed'>: 1}
+WARNING: 1 of 4732 documents extracted no entities (0.0%, within --max-failed-frac). Continuing.
+done. outputs/kg_image_only = 387 MB (paper Sec 4.2 reports 489 MB for the full ScienceQA MMKG)
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading wandb-summary.json; uploading config.yaml
+wandb: uploading summary, console lines 11-63
+wandb: 
+wandb: Run summary:
+wandb:       chars 5200175
+wandb:   documents 6218
+wandb:      failed 1
+wandb: failed_frac 0.00021
+wandb:   processed 4731
+wandb:     size_mb 386.50825
+wandb: 
+wandb: 🚀 View run kg-image_only at: https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro/runs/kg-80266-0
+wandb: ⭐️ View project at: https://forge.coreweave.com/wandb/thiennp3-hcmus/valik-repro
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: /media/lhbac29/wandb/wandb/run-20261027_234441-kg-80266-0/logs
+369M	outputs/kg_image_only
+Finished Tue Oct 27 11:47:30 PM UTC 2026

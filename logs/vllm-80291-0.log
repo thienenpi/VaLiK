@@ -1,0 +1,77 @@
+INFO 10-27 23:38:51 __init__.py:207] Automatically detected platform cuda.
+INFO 10-27 23:38:52 api_server.py:912] vLLM API server version 0.7.3
+INFO 10-27 23:38:52 api_server.py:913] args: Namespace(subparser='serve', model_tag='Qwen/Qwen2.5-32B-Instruct-AWQ', config='', host='127.0.0.1', port=20291, uvicorn_log_level='info', allow_credentials=False, allowed_origins=['*'], allowed_methods=['*'], allowed_headers=['*'], api_key=None, lora_modules=None, prompt_adapters=None, chat_template=None, chat_template_content_format='auto', response_role='assistant', ssl_keyfile=None, ssl_certfile=None, ssl_ca_certs=None, ssl_cert_reqs=0, root_path=None, middleware=[], return_tokens_as_token_ids=False, disable_frontend_multiprocessing=False, enable_request_id_headers=False, enable_auto_tool_choice=False, enable_reasoning=False, reasoning_parser=None, tool_call_parser=None, tool_parser_plugin='', model='Qwen/Qwen2.5-32B-Instruct-AWQ', task='auto', tokenizer=None, skip_tokenizer_init=False, revision=None, code_revision=None, tokenizer_revision=None, tokenizer_mode='auto', trust_remote_code=False, allowed_local_media_path=None, download_dir=None, load_format='auto', config_format=<ConfigFormat.AUTO: 'auto'>, dtype='auto', kv_cache_dtype='auto', max_model_len=16384, guided_decoding_backend='xgrammar', logits_processor_pattern=None, model_impl='auto', distributed_executor_backend=None, pipeline_parallel_size=1, tensor_parallel_size=1, max_parallel_loading_workers=None, ray_workers_use_nsight=False, block_size=None, enable_prefix_caching=None, disable_sliding_window=False, use_v2_block_manager=True, num_lookahead_slots=0, seed=0, swap_space=4, cpu_offload_gb=0, gpu_memory_utilization=0.85, num_gpu_blocks_override=None, max_num_batched_tokens=None, max_num_partial_prefills=1, max_long_partial_prefills=1, long_prefill_token_threshold=0, max_num_seqs=None, max_logprobs=20, disable_log_stats=False, quantization=None, rope_scaling=None, rope_theta=None, hf_overrides=None, enforce_eager=False, max_seq_len_to_capture=8192, disable_custom_all_reduce=False, tokenizer_pool_size=0, tokenizer_pool_type='ray', tokenizer_pool_extra_config=None, limit_mm_per_prompt=None, mm_processor_kwargs=None, disable_mm_preprocessor_cache=False, enable_lora=False, enable_lora_bias=False, max_loras=1, max_lora_rank=16, lora_extra_vocab_size=256, lora_dtype='auto', long_lora_scaling_factors=None, max_cpu_loras=None, fully_sharded_loras=False, enable_prompt_adapter=False, max_prompt_adapters=1, max_prompt_adapter_token=0, device='auto', num_scheduler_steps=1, multi_step_stream_outputs=True, scheduler_delay_factor=0.0, enable_chunked_prefill=None, speculative_model=None, speculative_model_quantization=None, num_speculative_tokens=None, speculative_disable_mqa_scorer=False, speculative_draft_tensor_parallel_size=None, speculative_max_model_len=None, speculative_disable_by_batch_size=None, ngram_prompt_lookup_max=None, ngram_prompt_lookup_min=None, spec_decoding_acceptance_method='rejection_sampler', typical_acceptance_sampler_posterior_threshold=None, typical_acceptance_sampler_posterior_alpha=None, disable_logprobs_during_spec_decoding=None, model_loader_extra_config=None, ignore_patterns=[], preemption_mode=None, served_model_name=None, qlora_adapter_name_or_path=None, otlp_traces_endpoint=None, collect_detailed_traces=None, disable_async_output_proc=False, scheduling_policy='fcfs', scheduler_cls='vllm.core.scheduler.Scheduler', override_neuron_config=None, override_pooler_config=None, compilation_config=None, kv_transfer_config=None, worker_cls='auto', generation_config=None, override_generation_config=None, enable_sleep_mode=False, calculate_kv_scales=False, additional_config=None, disable_log_requests=True, max_log_len=None, disable_fastapi_docs=False, enable_prompt_tokens_details=False, dispatch_function=<function ServeSubcommand.cmd at 0x7f33721b39a0>)
+INFO 10-27 23:38:52 api_server.py:209] Started engine process with PID 2731112
+INFO 10-27 23:39:02 __init__.py:207] Automatically detected platform cuda.
+INFO 10-27 23:39:08 config.py:549] This model supports multiple tasks: {'score', 'classify', 'generate', 'embed', 'reward'}. Defaulting to 'generate'.
+INFO 10-27 23:39:11 awq_marlin.py:114] The model is convertible to awq_marlin during runtime. Using awq_marlin kernel.
+INFO 10-27 23:39:16 config.py:549] This model supports multiple tasks: {'generate', 'embed', 'reward', 'score', 'classify'}. Defaulting to 'generate'.
+INFO 10-27 23:39:17 awq_marlin.py:114] The model is convertible to awq_marlin during runtime. Using awq_marlin kernel.
+INFO 10-27 23:39:17 llm_engine.py:234] Initializing a V0 LLM engine (v0.7.3) with config: model='Qwen/Qwen2.5-32B-Instruct-AWQ', speculative_config=None, tokenizer='Qwen/Qwen2.5-32B-Instruct-AWQ', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, override_neuron_config=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.float16, max_seq_len=16384, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, disable_custom_all_reduce=False, quantization=awq_marlin, enforce_eager=False, kv_cache_dtype=auto,  device_config=cuda, decoding_config=DecodingConfig(guided_decoding_backend='xgrammar'), observability_config=ObservabilityConfig(otlp_traces_endpoint=None, collect_model_forward_time=False, collect_model_execute_time=False), seed=0, served_model_name=Qwen/Qwen2.5-32B-Instruct-AWQ, num_scheduler_steps=1, multi_step_stream_outputs=True, enable_prefix_caching=False, chunked_prefill_enabled=False, use_async_output_proc=True, disable_mm_preprocessor_cache=False, mm_processor_kwargs=None, pooler_config=None, compilation_config={"splitting_ops":[],"compile_sizes":[],"cudagraph_capture_sizes":[256,248,240,232,224,216,208,200,192,184,176,168,160,152,144,136,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16,8,4,2,1],"max_capture_size":256}, use_cached_outputs=True, 
+INFO 10-27 23:39:20 cuda.py:229] Using Flash Attention backend.
+INFO 10-27 23:39:22 model_runner.py:1110] Starting to load model Qwen/Qwen2.5-32B-Instruct-AWQ...
+INFO 10-27 23:39:24 weight_utils.py:254] Using model weights format ['*.safetensors']
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:53<03:32, 53.24s/it]
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [01:46<02:40, 53.48s/it]
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [02:45<01:51, 55.61s/it]
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [03:31<00:51, 51.91s/it]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [04:23<00:00, 52.01s/it]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [04:23<00:00, 52.69s/it]
+
+INFO 10-27 23:43:50 model_runner.py:1115] Loading model weights took 18.1467 GB
+INFO 10-27 23:44:02 worker.py:267] Memory profiling takes 11.76 seconds
+INFO 10-27 23:44:02 worker.py:267] the current vLLM instance can use total_gpu_memory (39.39GiB) x gpu_memory_utilization (0.85) = 33.48GiB
+INFO 10-27 23:44:02 worker.py:267] model weights take 18.15GiB; non_torch_memory takes 0.10GiB; PyTorch activation peak memory takes 4.02GiB; the rest of the memory reserved for KV Cache is 11.22GiB.
+INFO 10-27 23:44:03 executor_base.py:111] # cuda blocks: 2872, # CPU blocks: 1024
+INFO 10-27 23:44:03 executor_base.py:116] Maximum concurrency for 16384 tokens per request: 2.80x
+INFO 10-27 23:44:05 model_runner.py:1434] Capturing cudagraphs for decoding. This may lead to unexpected consequences if the model is not static. To run the model in eager mode, set 'enforce_eager=True' or use '--enforce-eager' in the CLI. If out-of-memory error occurs during cudagraph capture, consider decreasing `gpu_memory_utilization` or switching to eager mode. You can also reduce the `max_num_seqs` as needed to decrease memory usage.
+Capturing CUDA graph shapes:   0%|          | 0/35 [00:00<?, ?it/s]Capturing CUDA graph shapes:   3%|▎         | 1/35 [00:01<01:01,  1.81s/it]Capturing CUDA graph shapes:   6%|▌         | 2/35 [00:02<00:37,  1.14s/it]Capturing CUDA graph shapes:   9%|▊         | 3/35 [00:03<00:31,  1.01it/s]Capturing CUDA graph shapes:  11%|█▏        | 4/35 [00:03<00:27,  1.15it/s]Capturing CUDA graph shapes:  14%|█▍        | 5/35 [00:04<00:25,  1.19it/s]Capturing CUDA graph shapes:  17%|█▋        | 6/35 [00:05<00:23,  1.25it/s]Capturing CUDA graph shapes:  20%|██        | 7/35 [00:06<00:21,  1.32it/s]Capturing CUDA graph shapes:  23%|██▎       | 8/35 [00:06<00:19,  1.39it/s]Capturing CUDA graph shapes:  26%|██▌       | 9/35 [00:07<00:19,  1.31it/s]Capturing CUDA graph shapes:  29%|██▊       | 10/35 [00:08<00:17,  1.39it/s]Capturing CUDA graph shapes:  31%|███▏      | 11/35 [00:08<00:17,  1.41it/s]Capturing CUDA graph shapes:  34%|███▍      | 12/35 [00:09<00:17,  1.32it/s]Capturing CUDA graph shapes:  37%|███▋      | 13/35 [00:10<00:15,  1.39it/s]Capturing CUDA graph shapes:  40%|████      | 14/35 [00:11<00:14,  1.43it/s]Capturing CUDA graph shapes:  43%|████▎     | 15/35 [00:11<00:13,  1.43it/s]Capturing CUDA graph shapes:  46%|████▌     | 16/35 [00:12<00:12,  1.48it/s]Capturing CUDA graph shapes:  49%|████▊     | 17/35 [00:13<00:12,  1.48it/s]Capturing CUDA graph shapes:  51%|█████▏    | 18/35 [00:13<00:11,  1.44it/s]Capturing CUDA graph shapes:  54%|█████▍    | 19/35 [00:14<00:10,  1.47it/s]Capturing CUDA graph shapes:  57%|█████▋    | 20/35 [00:15<00:09,  1.53it/s]Capturing CUDA graph shapes:  60%|██████    | 21/35 [00:15<00:08,  1.59it/s]Capturing CUDA graph shapes:  63%|██████▎   | 22/35 [00:16<00:08,  1.51it/s]Capturing CUDA graph shapes:  66%|██████▌   | 23/35 [00:16<00:07,  1.57it/s]Capturing CUDA graph shapes:  69%|██████▊   | 24/35 [00:17<00:06,  1.63it/s]Capturing CUDA graph shapes:  71%|███████▏  | 25/35 [00:18<00:06,  1.61it/s]Capturing CUDA graph shapes:  74%|███████▍  | 26/35 [00:18<00:05,  1.52it/s]Capturing CUDA graph shapes:  77%|███████▋  | 27/35 [00:19<00:05,  1.56it/s]Capturing CUDA graph shapes:  80%|████████  | 28/35 [00:20<00:04,  1.60it/s]Capturing CUDA graph shapes:  83%|████████▎ | 29/35 [00:20<00:03,  1.54it/s]Capturing CUDA graph shapes:  86%|████████▌ | 30/35 [00:21<00:03,  1.57it/s]Capturing CUDA graph shapes:  89%|████████▊ | 31/35 [00:21<00:02,  1.63it/s]Capturing CUDA graph shapes:  91%|█████████▏| 32/35 [00:22<00:01,  1.52it/s]Capturing CUDA graph shapes:  94%|█████████▍| 33/35 [00:23<00:01,  1.51it/s]Capturing CUDA graph shapes:  97%|█████████▋| 34/35 [00:24<00:00,  1.54it/s]Capturing CUDA graph shapes: 100%|██████████| 35/35 [00:24<00:00,  1.57it/s]Capturing CUDA graph shapes: 100%|██████████| 35/35 [00:24<00:00,  1.42it/s]
+INFO 10-27 23:44:29 model_runner.py:1562] Graph capturing finished in 25 secs, took 2.07 GiB
+INFO 10-27 23:44:29 llm_engine.py:436] init engine (profile, create kv cache, warmup model) took 38.99 seconds
+INFO 10-27 23:44:30 api_server.py:958] Starting vLLM API server on http://127.0.0.1:20291
+INFO 10-27 23:44:30 launcher.py:23] Available routes are:
+INFO 10-27 23:44:30 launcher.py:31] Route: /openapi.json, Methods: GET, HEAD
+INFO 10-27 23:44:30 launcher.py:31] Route: /docs, Methods: GET, HEAD
+INFO 10-27 23:44:30 launcher.py:31] Route: /docs/oauth2-redirect, Methods: GET, HEAD
+INFO 10-27 23:44:30 launcher.py:31] Route: /redoc, Methods: GET, HEAD
+INFO 10-27 23:44:30 launcher.py:31] Route: /health, Methods: GET
+INFO 10-27 23:44:30 launcher.py:31] Route: /ping, Methods: GET, POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /tokenize, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /detokenize, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/models, Methods: GET
+INFO 10-27 23:44:30 launcher.py:31] Route: /version, Methods: GET
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/chat/completions, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/completions, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/embeddings, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /pooling, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /score, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/score, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/audio/transcriptions, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /rerank, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v1/rerank, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /v2/rerank, Methods: POST
+INFO 10-27 23:44:30 launcher.py:31] Route: /invocations, Methods: POST
+INFO:     Started server process [2730960]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:58022 - "GET /health HTTP/1.1" 200 OK
+INFO 10-27 23:47:23 chat_utils.py:332] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+ERROR 10-27 23:47:23 serving_chat.py:197] Error in preprocessing prompt inputs
+ERROR 10-27 23:47:23 serving_chat.py:197] Traceback (most recent call last):
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/serving_chat.py", line 181, in create_chat_completion
+ERROR 10-27 23:47:23 serving_chat.py:197]     ) = await self._preprocess_chat(
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/serving_engine.py", line 435, in _preprocess_chat
+ERROR 10-27 23:47:23 serving_chat.py:197]     prompt_inputs = await self._tokenize_prompt_input_async(
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+ERROR 10-27 23:47:23 serving_chat.py:197]     result = self.fn(*self.args, **self.kwargs)
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/serving_engine.py", line 270, in _tokenize_prompt_input
+ERROR 10-27 23:47:23 serving_chat.py:197]     return next(
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/serving_engine.py", line 293, in _tokenize_prompt_inputs
+ERROR 10-27 23:47:23 serving_chat.py:197]     yield self._normalize_prompt_text_to_input(
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/serving_engine.py", line 185, in _normalize_prompt_text_to_input
+ERROR 10-27 23:47:23 serving_chat.py:197]     return self._validate_input(request, input_ids, input_text)
+ERROR 10-27 23:47:23 serving_chat.py:197]   File "/media/lhbac29/miniconda3/envs/python310/lib/python3.10/site-packages/vllm/entrypoints/openai/serving_engine.py", line 242, in _validate_input
+ERROR 10-27 23:47:23 serving_chat.py:197]     raise ValueError(
+ERROR 10-27 23:47:23 serving_chat.py:197] ValueError: This model's maximum context length is 16384 tokens. However, you requested 16413 tokens in the messages, Please reduce the length of the messages.
+INFO:     127.0.0.1:47414 - "POST /v1/chat/completions HTTP/1.1" 400 Bad Request
